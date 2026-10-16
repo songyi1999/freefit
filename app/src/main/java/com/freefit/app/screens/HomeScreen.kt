@@ -35,7 +35,8 @@ import java.time.LocalDate
 
 @Composable
 fun HomeScreen(onStartPlan: (String) -> Unit) {
-    val dao = remember { AppDatabase.get(LocalContext.current).sessionDao() }
+    val context = LocalContext.current
+    val dao = remember { AppDatabase.get(context).sessionDao() }
     val records by dao.observeAll().collectAsState(initial = emptyList())
 
     val streak = remember(records) { streakDays(records.map { it.date }) }

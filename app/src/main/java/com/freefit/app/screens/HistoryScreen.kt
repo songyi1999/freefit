@@ -39,7 +39,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HistoryScreen() {
-    val dao = remember { AppDatabase.get(LocalContext.current).sessionDao() }
+    val context = LocalContext.current
+    val dao = remember { AppDatabase.get(context).sessionDao() }
     val records by dao.observeAll().collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     var deleteTarget by remember { mutableStateOf<SessionEntity?>(null) }
