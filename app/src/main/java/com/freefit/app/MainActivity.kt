@@ -90,9 +90,52 @@ fun AppRoot() {
         NavHost(navController = nav, startDestination = "home", modifier = Modifier.padding(padding)) {
             composable("home") {
                 HomeScreen(
-                    onStartPlan = { nav.navigate("player/plan/$it") },
+                    onOpenPlan = { nav.navigate("plan/$it") },
                     onOpenCamera = { nav.navigate("camera/squat") },
                     onOpenRun = { nav.navigate("run") },
+                    onNewPlan = { nav.navigate("newplan") },
+                    onEditProfile = { nav.navigate("newplanEdit") },
+                )
+            }
+            composable("plan/{id}") { entry ->
+                val ctx = androidx.compose.ui.platform.LocalContext.current
+                val id = entry.arguments?.getString("id") ?: "p1"
+                val plan = com.freefit.app.data.PlanStore.byIdAny(ctx, id)
+                if (plan != null) {
+                    com.freefit.app.screens.PlanDetailScreen(
+                        plan = plan,
+                        isCustom = plan.id.startsWith("c_"),
+                        onBack = { nav.popBackStack() },
+                        onStart = { nav.navigate("player/plan/${plan.id}") },
+                        onOpenExercise = { nav.navigate("exercise/$it") },
+                        onDelete = {
+                            com.freefit.app.data.PlanStore.deletePlan(ctx, plan.id)
+                            nav.popBackStack()
+                        },
+                    )
+                }
+            }
+            composable("newplan") {
+                com.freefit.app.screens.NewPlanScreen(
+                    onBack = { nav.popBackStack() },
+                    onSaved = { nav.popBackStack() },
+                    onStartPlan = {
+                        nav.navigate("player/plan/$it") {
+                            popUpTo("home")
+                        }
+                    },
+                )
+            }
+            composable("newplanEdit") {
+                com.freefit.app.screens.NewPlanScreen(
+                    editProfile = true,
+                    onBack = { nav.popBackStack() },
+                    onSaved = { nav.popBackStack() },
+                    onStartPlan = {
+                        nav.navigate("player/plan/$it") {
+                            popUpTo("home")
+                        }
+                    },
                 )
             }
             composable("library") {
@@ -122,7 +165,9 @@ fun AppRoot() {
                 PoseCameraScreen(ex = ex, onExit = { nav.popBackStack() })
             }
             composable("player/plan/{id}") { entry ->
-                val plan = Plans.byId(entry.arguments?.getString("id") ?: "p1")
+                val ctx = androidx.compose.ui.platform.LocalContext.current
+                val id = entry.arguments?.getString("id") ?: "p1"
+                val plan = com.freefit.app.data.PlanStore.byIdAny(ctx, id) ?: Plans.byId(id)
                 PlayerScreen(plan = plan, onExit = { nav.popBackStack() })
             }
             composable("player/exercise/{id}") { entry ->

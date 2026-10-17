@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -51,14 +52,19 @@ import java.time.LocalDate
 
 @Composable
 fun HomeScreen(
-    onStartPlan: (String) -> Unit,
+    onOpenPlan: (String) -> Unit,
     onOpenCamera: () -> Unit,
     onOpenRun: () -> Unit,
+    onNewPlan: () -> Unit,
+    onEditProfile: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dao = remember { AppDatabase.get(context).sessionDao() }
     val records by dao.observeAll().collectAsState(initial = emptyList())
+
+    // 计划列表 = 内置 + 定制
+    val allPlans = remember { Plans.all + com.freefit.app.data.PlanStore.toWorkoutPlans(context) }
 
     // 应用内自更新（OTA）：启动时静默检查 GitHub 最新 Release
     var updateState by remember { mutableStateOf<UpdateState>(UpdateState.Idle) }
@@ -185,14 +191,21 @@ fun HomeScreen(
         }
 
         item {
-            Text(
-                t("训练计划", "Training Plans"),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 8.dp),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                Text(
+                    t("训练计划", "Training Plans"),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                androidx.compose.material3.TextButton(onClick = onNewPlan) {
+                    Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.height(18.dp))
+                    Spacer(Modifier.width(2.dp))
+                    Text(t("新建计划", "New Plan"))
+                }
+            }
         }
-        items(Plans.all) { plan ->
-            Card(onClick = { onStartPlan(plan.id) }, modifier = Modifier.fillMaxWidth()) {
+        items(allPlans) { plan ->
+            Card(onClick = { onOpenPlan(plan.id) }, modifier = Modifier.fillMaxWidth()) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(16.dp),
@@ -211,7 +224,7 @@ fun HomeScreen(
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }
-                    FilledIconButton(onClick = { onStartPlan(plan.id) }) {
+                    FilledIconButton(onClick = { onOpenPlan(plan.id) }) {
                         Icon(Icons.Filled.PlayArrow, contentDescription = "开始")
                     }
                 }
@@ -245,6 +258,31 @@ fun HomeScreen(
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
+                    }
+                }
+            }
+        }
+
+        // 个人资料（性别/年龄，用于定制计划）+ 修改入口
+        item {
+            val g = com.freefit.app.data.PlanStore.gender(context)
+            val a = com.freefit.app.data.PlanStore.age(context)
+            if (g != null && a > 0) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                ) {
+                    Text(
+                        t(
+                            "资料：${if (g == com.freefit.app.data.PlanStore.GENDER_MALE) "男" else "女"} · $a 岁",
+                            "Profile: ${if (g == com.freefit.app.data.PlanStore.GENDER_MALE) "Male" else "Female"} · $a",
+                        ),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    androidx.compose.material3.TextButton(onClick = onEditProfile) {
+                        Text(t("修改", "Edit"))
                     }
                 }
             }
