@@ -1,6 +1,13 @@
 # FreeFit
 
+[![Build APK](https://github.com/songyi1999/freefit/actions/workflows/build.yml/badge.svg)](https://github.com/songyi1999/freefit/actions/workflows/build.yml)
+
 免费、无账号、零服务器的本地健身 App（安卓原生 Kotlin + Compose）。产品与开发方案见 [PLAN.md](PLAN.md)。
+
+## 下载安装
+
+- 稳定版：到 [Releases](https://github.com/songyi1999/freefit/releases) 下载 `FreeFit-release.apk`（打 `v*` 标签自动发布）
+- 尝鲜版：Actions 构建产物（每次 push 自动打包，需登录 GitHub 下载 artifact）
 
 ## 构建
 
