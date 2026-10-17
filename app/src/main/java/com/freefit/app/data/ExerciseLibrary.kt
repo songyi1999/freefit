@@ -284,6 +284,27 @@ object ExerciseLibrary {
 
     private val byIdMap: Map<String, Exercise> = all.associateBy { it.id }
 
+    /** 组间休息小人：叉腰调整呼吸的轻微起伏动画，不列入动作库 */
+    val restFigure = Exercise(
+        id = "rest", name = "休息", category = "休息", difficulty = 1,
+        muscles = emptyList(), cues = emptyList(),
+        mode = TIMED, defaultDurationSec = 0, defaultReps = 0, cycleSec = 3.6f,
+        keyframes = listOf(
+            Keyframe(0.0f, poseSide( // 叉腰站立，呼气
+                elbowL = P(0.455f, 0.325f), elbowR = P(0.565f, 0.325f),
+                wristL = P(0.485f, 0.46f), wristR = P(0.515f, 0.46f),
+                hip = P(0.50f, 0.505f),
+            )),
+            Keyframe(0.5f, poseSide( // 吸气，胸口微微抬起
+                head = P(0.502f, 0.094f), neck = P(0.502f, 0.179f),
+                shoulderL = P(0.487f, 0.204f), shoulderR = P(0.513f, 0.204f),
+                elbowL = P(0.448f, 0.318f), elbowR = P(0.572f, 0.318f),
+                wristL = P(0.485f, 0.455f), wristR = P(0.515f, 0.455f),
+                hip = P(0.50f, 0.508f),
+            )),
+        ),
+    )
+
     fun byId(id: String): Exercise =
         byIdMap[id] ?: error("未知动作 id: $id")
 }

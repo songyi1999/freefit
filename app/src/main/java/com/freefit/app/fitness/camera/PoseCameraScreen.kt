@@ -115,6 +115,13 @@ private fun CameraContent(ex: Exercise, onExit: () -> Unit) {
 
     val coach = remember(ex.id) { FormCoach(ex, tts) }
 
+    // 姿态识别期间保持亮屏
+    val view = androidx.compose.ui.platform.LocalView.current
+    DisposableEffect(Unit) {
+        view.keepScreenOn = true
+        onDispose { view.keepScreenOn = false }
+    }
+
     val landmarker = remember(ex.id) {
         val base = BaseOptions.builder()
             .setModelAssetPath("pose_landmarker_lite.task")

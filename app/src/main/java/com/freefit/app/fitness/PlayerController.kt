@@ -20,6 +20,7 @@ enum class PlayerPhase { READY, ACTIVE, REST, DONE }
 class PlayerController(
     plan: WorkoutPlan,
     private val tts: TtsSpeaker?,
+    private val cues: SoundCues? = null,
     private val onFinish: (elapsedSec: Int, doneSets: Int, totalSets: Int) -> Unit,
 ) {
     data class Step(
@@ -66,6 +67,7 @@ class PlayerController(
                 speakCountdown(remain)
                 if (remain <= 0f) {
                     tts?.speak("开始")
+                    cues?.setStart()
                     s.copy(phase = PlayerPhase.ACTIVE, remain = step.targetSec, elapsed = s.elapsed + dt)
                 } else {
                     s.copy(remain = remain, elapsed = s.elapsed + dt)
@@ -83,6 +85,7 @@ class PlayerController(
                     when {
                         step.isLast -> {
                             tts?.speak("训练完成，辛苦了")
+                            cues?.finish()
                             s.copy(phase = PlayerPhase.DONE, remain = 0f, doneSets = doneSets,
                                 currentRep = step.totalReps, elapsed = s.elapsed + dt)
                                 .also { save(it.elapsed, doneSets) }
@@ -93,6 +96,7 @@ class PlayerController(
                         }
                         else -> {
                             tts?.speak("休息")
+                            cues?.setDone()
                             State(phase = PlayerPhase.REST, stepIndex = s.stepIndex,
                                 remain = step.restSec.toFloat(), elapsed = s.elapsed + dt, doneSets = doneSets)
                         }
@@ -106,6 +110,7 @@ class PlayerController(
                 val remain = s.remain - dt
                 speakCountdown(remain)
                 if (remain <= 0f) {
+                    cues?.restOver()
                     advance(s, s.doneSets, s.elapsed + dt)
                 } else {
                     s.copy(remain = remain, elapsed = s.elapsed + dt)
@@ -137,7 +142,10 @@ class PlayerController(
     /** 跳过休息，直接进入下一组 */
     fun skipRest() {
         val s = state
-        if (s.phase == PlayerPhase.REST) state = advanceState(s)
+        if (s.phase == PlayerPhase.REST) {
+            cues?.restOver()
+            state = advanceState(s)
+        }
     }
 
     /** 主动结束训练 */

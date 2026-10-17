@@ -64,12 +64,19 @@ fun RunScreen() {
     val state by RunTracker.state.collectAsState()
 
     // 秒级刷新计时显示
-    var tick by remember { mutableLongStateOf(0L) }
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(state.running) {
         while (state.running) {
-            tick++
+            now = System.currentTimeMillis()
             delay(1000)
         }
+    }
+
+    // 跑步进行中保持亮屏
+    val view = androidx.compose.ui.platform.LocalView.current
+    androidx.compose.runtime.DisposableEffect(state.running) {
+        view.keepScreenOn = state.running
+        onDispose { view.keepScreenOn = false }
     }
 
     var locationGranted by remember {
@@ -131,7 +138,7 @@ fun RunScreen() {
     }
 
     // 进行中 / 暂停 / 结束确认
-    val elapsed = state.elapsedMs() / 1000
+    val elapsed = state.elapsedMs(now) / 1000
     val km = state.distanceM / 1000f
     val pace = state.paceSecPerKm()
     val paceText = if (pace > 0) String.format(Locale.US, "%d'%02d\"", (pace / 60).toInt(), (pace % 60).toInt()) else "--"

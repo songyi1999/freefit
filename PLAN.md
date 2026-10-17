@@ -79,3 +79,4 @@
 - 2026-10-17：代码推送 GitHub（songyi1999/freefit）；新增 GitHub Actions 自动打包（push 构建 debug+release APK 上传 artifact，`v*` 标签自动发 Release）；配置 release 签名（keystore 随仓库，30 年有效期）。
 - 2026-10-17：CI 全链路跑通，v0.1.0 Release 已自动发布（含 FreeFit-release.apk 直链）。排查记录：gradlew 缺执行位（git update-index --chmod=+x）、keystore 被 .gitignore 挡住、KSP 插件 marker 在 CI 解析失败（settings 中 resolutionStrategy 映射到真实模块坐标）、GITHUB_TOKEN 默认只读（workflow 加 permissions: contents: write）。
 - 2026-10-17：M3 完成并发布 v0.2.0。新增：①摄像头 AI 实时纠错（MediaPipe Pose lite 端侧模型随 APK 分发，CameraX 流式检测 ~12fps，自动计数 + 深度/直线度语音纠错，支持深蹲/俯卧撑/平板支撑/臀桥/弓步蹲）②GPS 跑步（前台服务 + 系统 LocationManager，不依赖 GMS，国内手机通用；距离/配速/轨迹存储，漂移过滤）。数据库升级 v2（distanceMeters/routeJson 列，含迁移）。导航新增跑步 tab 与 AI 纠错入口（首页快捷卡片 + 动作详情按钮）。
+- 2026-10-17：v0.2.1 体验改进（用户反馈）：①休息阶段显示叉腰喘气的休息小人动画（替代下一组动作预览，下一组改为文字提示）②新增提示音（ToneGenerator 零资源）：开始运动/一组结束/休息结束/全部完成 ③跟练、摄像头纠错、跑步进行中保持亮屏 ④修复跑步计时显示在暂停时不刷新的 bug。

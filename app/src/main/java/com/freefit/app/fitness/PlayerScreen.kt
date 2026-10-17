@@ -78,10 +78,23 @@ fun PlayerScreen(plan: WorkoutPlan, onExit: () -> Unit) {
     val scope = rememberCoroutineScope()
     val dao = remember { AppDatabase.get(context).sessionDao() }
     val tts = remember { TtsSpeaker(context) }
-    DisposableEffect(Unit) { onDispose { tts.shutdown() } }
+    val cues = remember { SoundCues() }
+    DisposableEffect(Unit) {
+        onDispose {
+            tts.shutdown()
+            cues.release()
+        }
+    }
+
+    // 训练全程保持亮屏
+    val view = androidx.compose.ui.platform.LocalView.current
+    DisposableEffect(Unit) {
+        view.keepScreenOn = true
+        onDispose { view.keepScreenOn = false }
+    }
 
     val controller = remember(plan.id) {
-        PlayerController(plan, tts) { elapsed, done, total ->
+        PlayerController(plan, tts, cues) { elapsed, done, total ->
             scope.launch {
                 dao.insert(
                     SessionEntity(
@@ -273,15 +286,21 @@ private fun RestContent(step: PlayerController.Step, s: PlayerController.State) 
             Text(
                 "下一组：${next.name}",
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
             )
-            AnimatedStickFigure(
-                ex = next,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-            )
-        } ?: Spacer(Modifier.weight(1f))
+        }
+        Text(
+            "小口补水，调整呼吸",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        // 休息小人：叉腰喘气的轻微起伏
+        AnimatedStickFigure(
+            ex = com.freefit.app.data.ExerciseLibrary.restFigure,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+        )
         Spacer(Modifier.height(16.dp))
     }
 }
