@@ -105,7 +105,12 @@ fun HistoryScreen() {
                     Column(Modifier.weight(1f)) {
                         Text(r.planName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                         Text(
-                            "${r.date} · 完成 ${r.doneSets}/${r.totalSets} 组 · ${formatDuration(r.durationSec)}",
+                            if (r.distanceMeters > 0) {
+                                val paceSec = if (r.distanceMeters > 0) r.durationSec / (r.distanceMeters / 1000f) else 0f
+                                "${r.date} · ${"%.2f".format(r.distanceMeters / 1000f)} 公里 · 配速 ${paceSec.toInt() / 60}'${"%02d".format(paceSec.toInt() % 60)}\" · ${formatDuration(r.durationSec)}"
+                            } else {
+                                "${r.date} · 完成 ${r.doneSets}/${r.totalSets} 组 · ${formatDuration(r.durationSec)}"
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

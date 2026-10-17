@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -34,7 +36,11 @@ import com.freefit.app.data.db.AppDatabase
 import java.time.LocalDate
 
 @Composable
-fun HomeScreen(onStartPlan: (String) -> Unit) {
+fun HomeScreen(
+    onStartPlan: (String) -> Unit,
+    onOpenCamera: () -> Unit,
+    onOpenRun: () -> Unit,
+) {
     val context = LocalContext.current
     val dao = remember { AppDatabase.get(context).sessionDao() }
     val records by dao.observeAll().collectAsState(initial = emptyList())
@@ -79,6 +85,44 @@ fun HomeScreen(onStartPlan: (String) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
                 )
+            }
+        }
+
+        item {
+            // 快捷入口：AI 纠错（核心卖点）与跑步
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Card(onClick = onOpenCamera, modifier = Modifier.weight(1f)) {
+                    Column(Modifier.padding(14.dp)) {
+                        Icon(
+                            Icons.Filled.Visibility,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text("AI 实时纠错", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        Text(
+                            "摄像头识别姿态，自动计数",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Card(onClick = onOpenRun, modifier = Modifier.weight(1f)) {
+                    Column(Modifier.padding(14.dp)) {
+                        Icon(
+                            Icons.Filled.DirectionsRun,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text("户外跑步", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        Text(
+                            "GPS 记录距离与配速",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
         }
 

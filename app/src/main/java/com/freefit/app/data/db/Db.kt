@@ -9,6 +9,8 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "sessions")
@@ -21,6 +23,10 @@ data class SessionEntity(
     val durationSec: Int,
     val doneSets: Int,
     val totalSets: Int,
+    /** 跑步记录才有：距离（米） */
+    val distanceMeters: Int = 0,
+    /** 跑步轨迹 "lat,lng;lat,lng;..."，训练记录为 null */
+    val routeJson: String? = null,
 )
 
 @Dao
@@ -35,11 +41,18 @@ interface SessionDao {
     suspend fun delete(id: Long)
 }
 
-@Database(entities = [SessionEntity::class], version = 1, exportSchema = false)
+@Database(entities = [SessionEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
 
     companion object {
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE sessions ADD COLUMN distanceMeters INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE sessions ADD COLUMN routeJson TEXT")
+            }
+        }
+
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -49,7 +62,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "freefit.db",
-                ).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
             }
     }
 }

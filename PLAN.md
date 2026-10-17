@@ -69,7 +69,7 @@
 |---|---|---|
 | M1 | 骨架 + 动作库 + 跟练播放器 + 训练记录 | ✅ 已完成（构建通过，待真机验证） |
 | M2 | 计划模板 + 打卡展示 + 打包分发 | 🔄 进行中（模板与打卡已含在 M1 内，剩打包实测） |
-| M3 | 摄像头纠错 + 跑步记录 | 未开始 |
+| M3 | 摄像头纠错 + 跑步记录 | ✅ 已完成（构建通过，待真机验证） |
 | M4 | 趋势图表 + AI 对话（可选） | 未开始 |
 
 ## 七、进展记录
@@ -78,3 +78,4 @@
 - 2026-10-16：`assembleDebug` 构建通过，产出 `app-debug.apk`（约 16MB）。期间解决：dl.google.com 无法访问（改用阿里云镜像）、Gradle 发行版下载慢（复用本机已有 8.11.1）、local.properties 路径转义错误、两处 `LocalContext` 在 `remember` 内的编译错误。
 - 2026-10-17：代码推送 GitHub（songyi1999/freefit）；新增 GitHub Actions 自动打包（push 构建 debug+release APK 上传 artifact，`v*` 标签自动发 Release）；配置 release 签名（keystore 随仓库，30 年有效期）。
 - 2026-10-17：CI 全链路跑通，v0.1.0 Release 已自动发布（含 FreeFit-release.apk 直链）。排查记录：gradlew 缺执行位（git update-index --chmod=+x）、keystore 被 .gitignore 挡住、KSP 插件 marker 在 CI 解析失败（settings 中 resolutionStrategy 映射到真实模块坐标）、GITHUB_TOKEN 默认只读（workflow 加 permissions: contents: write）。
+- 2026-10-17：M3 完成并发布 v0.2.0。新增：①摄像头 AI 实时纠错（MediaPipe Pose lite 端侧模型随 APK 分发，CameraX 流式检测 ~12fps，自动计数 + 深度/直线度语音纠错，支持深蹲/俯卧撑/平板支撑/臀桥/弓步蹲）②GPS 跑步（前台服务 + 系统 LocationManager，不依赖 GMS，国内手机通用；距离/配速/轨迹存储，漂移过滤）。数据库升级 v2（distanceMeters/routeJson 列，含迁移）。导航新增跑步 tab 与 AI 纠错入口（首页快捷卡片 + 动作详情按钮）。

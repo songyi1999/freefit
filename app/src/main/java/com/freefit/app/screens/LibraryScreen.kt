@@ -22,6 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -93,6 +94,7 @@ fun ExerciseDetailScreen(
     ex: Exercise,
     onBack: () -> Unit,
     onTry: () -> Unit,
+    onCamera: () -> Unit = {},
 ) {
     var speed by remember { mutableFloatStateOf(1f) }
 
@@ -163,6 +165,10 @@ fun ExerciseDetailScreen(
             Spacer(Modifier.height(24.dp))
             Button(onClick = onTry, modifier = Modifier.fillMaxWidth()) {
                 Text("试练一组")
+            }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onCamera, modifier = Modifier.fillMaxWidth()) {
+                Text("AI 摄像头纠错")
             }
             Spacer(Modifier.height(24.dp))
         }

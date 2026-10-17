@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
@@ -26,6 +27,8 @@ import com.freefit.app.data.ExerciseLibrary
 import com.freefit.app.data.Plans
 import com.freefit.app.fitness.PlayerScreen
 import com.freefit.app.fitness.adhocPlan
+import com.freefit.app.fitness.camera.PoseCameraScreen
+import com.freefit.app.run.RunScreen
 import com.freefit.app.screens.ExerciseDetailScreen
 import com.freefit.app.screens.HistoryScreen
 import com.freefit.app.screens.HomeScreen
@@ -51,6 +54,7 @@ fun FreeFitApp() {
     val tabs = listOf(
         Tab("home", "首页", Icons.Filled.Home),
         Tab("library", "动作库", Icons.Filled.FitnessCenter),
+        Tab("run", "跑步", Icons.Filled.DirectionsRun),
         Tab("history", "记录", Icons.Filled.History),
     )
     val tabRoutes = tabs.map { it.route }.toSet()
@@ -83,10 +87,17 @@ fun FreeFitApp() {
     ) { padding ->
         NavHost(navController = nav, startDestination = "home", modifier = Modifier.padding(padding)) {
             composable("home") {
-                HomeScreen(onStartPlan = { nav.navigate("player/plan/$it") })
+                HomeScreen(
+                    onStartPlan = { nav.navigate("player/plan/$it") },
+                    onOpenCamera = { nav.navigate("camera/squat") },
+                    onOpenRun = { nav.navigate("run") },
+                )
             }
             composable("library") {
                 LibraryScreen(onOpenExercise = { nav.navigate("exercise/$it") })
+            }
+            composable("run") {
+                RunScreen()
             }
             composable("history") {
                 HistoryScreen()
@@ -97,7 +108,12 @@ fun FreeFitApp() {
                     ex = ex,
                     onBack = { nav.popBackStack() },
                     onTry = { nav.navigate("player/exercise/${ex.id}") },
+                    onCamera = { nav.navigate("camera/${ex.id}") },
                 )
+            }
+            composable("camera/{id}") { entry ->
+                val ex = ExerciseLibrary.byId(entry.arguments?.getString("id") ?: "squat")
+                PoseCameraScreen(ex = ex, onExit = { nav.popBackStack() })
             }
             composable("player/plan/{id}") { entry ->
                 val plan = Plans.byId(entry.arguments?.getString("id") ?: "p1")
