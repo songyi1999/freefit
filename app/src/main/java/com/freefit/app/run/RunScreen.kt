@@ -58,7 +58,7 @@ import java.time.LocalDate
 import java.util.Locale
 
 @Composable
-fun RunScreen() {
+fun RunScreen(onOpenDetail: (Long) -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dao = remember { AppDatabase.get(context).sessionDao() }
@@ -207,7 +207,7 @@ fun RunScreen() {
                     delay(300) // 等服务收尾
                     val final = RunTracker.finish()
                     if (final.points.size > 1 && final.distanceM > 20f) {
-                        dao.insert(
+                        val id = dao.insert(
                             SessionEntity(
                                 date = LocalDate.now().toString(),
                                 startTime = final.startedAt,
@@ -219,6 +219,8 @@ fun RunScreen() {
                                 routeJson = final.points.joinToString(";") { "${"%.5f".format(it.first)},${"%.5f".format(it.second)}" },
                             )
                         )
+                        // 直接跳详情页，跑完即可查看轨迹并分享
+                        onOpenDetail(id)
                     }
                 }
             },

@@ -99,7 +99,7 @@ fun AppRoot() {
                 LibraryScreen(onOpenExercise = { nav.navigate("exercise/$it") })
             }
             composable("run") {
-                RunScreen()
+                RunScreen(onOpenDetail = { nav.navigate("rundetail/$it") })
             }
             composable("history") {
                 HistoryScreen(onOpenRunDetail = { nav.navigate("rundetail/$it") })

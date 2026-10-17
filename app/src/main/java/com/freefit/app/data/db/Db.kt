@@ -32,7 +32,7 @@ data class SessionEntity(
 @Dao
 interface SessionDao {
     @Insert
-    suspend fun insert(e: SessionEntity)
+    suspend fun insert(e: SessionEntity): Long
 
     @Query("SELECT * FROM sessions ORDER BY startTime DESC")
     fun observeAll(): Flow<List<SessionEntity>>
