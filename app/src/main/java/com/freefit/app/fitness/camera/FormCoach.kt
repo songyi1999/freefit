@@ -78,6 +78,7 @@ private class Spec(
 
 private val SPECS = mapOf(
     "squat" to Spec(CountJoint.KNEE, false, contractAngle = 110f, openAngle = 150f, depthWarn = 100f, bodyLineCheck = false),
+    "dbsquat" to Spec(CountJoint.KNEE, false, contractAngle = 110f, openAngle = 150f, depthWarn = 100f, bodyLineCheck = false),
     "pushup" to Spec(CountJoint.ELBOW, false, contractAngle = 95f, openAngle = 150f, depthWarn = 90f, bodyLineCheck = true),
     "plank" to Spec(CountJoint.ELBOW, false, contractAngle = 95f, openAngle = 150f, depthWarn = null, bodyLineCheck = true),
     "glutebridge" to Spec(CountJoint.HIP_SHOULDER_KNEE, true, contractAngle = 145f, openAngle = 168f, depthWarn = 160f, bodyLineCheck = false),

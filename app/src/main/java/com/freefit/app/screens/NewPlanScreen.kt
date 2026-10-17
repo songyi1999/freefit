@@ -13,19 +13,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Female
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Male
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.SelfImprovement
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -33,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,14 +50,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.freefit.app.data.Exercise
 import com.freefit.app.data.ExerciseLibrary
+import com.freefit.app.data.PlanItem
 import com.freefit.app.data.PlanStore
 import com.freefit.app.t
 
 /**
  * 新建计划向导（参考 Keep AI 问卷式）：
- * 性别 → 年龄 → 目标 → 生成 4~5 个动作的定制计划。
- * 性别/年龄只问一次（本地记住），已有资料时直接进目标选择。
+ * 性别 → 年龄 → 器械 → 伤病 → 目标 → 生成并确认（可替换/移除/添加动作）。
+ * 资料只问一次（本地记住），已有完整资料时直接进目标选择。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,9 +73,15 @@ fun NewPlanScreen(
     val hasProfile = remember { PlanStore.hasProfile(context) }
     var gender by remember { mutableStateOf(PlanStore.gender(context) ?: PlanStore.GENDER_MALE) }
     var age by remember { mutableIntStateOf(PlanStore.age(context).let { if (it > 0) it else 25 }) }
+    var equipment by remember { mutableStateOf(PlanStore.equipment(context) ?: PlanStore.EQ_BODYWEIGHT) }
+    var injuriesSel by remember { mutableStateOf(PlanStore.injuries(context)) }
     // editProfile=true 用于首页「修改资料」，强制从第一步开始
-    var step by remember { mutableIntStateOf(if (editProfile || !hasProfile) 0 else 2) }
+    var step by remember { mutableIntStateOf(if (editProfile || !hasProfile) 0 else 4) }
     var plan by remember { mutableStateOf<PlanStore.CustomPlan?>(null) }
+    var editItems by remember { mutableStateOf<List<PlanItem>>(emptyList()) }
+    // 替换/添加对话框：mode 0=替换(记录index) 1=添加
+    var pickIndex by remember { mutableIntStateOf(-1) }
+    var showPicker by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -92,7 +103,7 @@ fun NewPlanScreen(
                 .padding(20.dp),
         ) {
             LinearProgressIndicator(
-                progress = { (step + 1) / 4f },
+                progress = { (step + 1) / 6f },
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(20.dp))
@@ -116,10 +127,7 @@ fun NewPlanScreen(
                         ) { gender = PlanStore.GENDER_FEMALE }
                     }
                     Spacer(Modifier.height(24.dp))
-                    Button(
-                        onClick = { step = 1 },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(t("下一步", "Next")) }
+                    NextButton { step = 1 }
                 }
 
                 1 -> {
@@ -151,16 +159,82 @@ fun NewPlanScreen(
                         modifier = Modifier.fillMaxWidth(),
                     )
                     Spacer(Modifier.height(24.dp))
-                    Button(
-                        onClick = {
-                            PlanStore.saveProfile(context, gender, age)
-                            step = 2
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(t("下一步", "Next")) }
+                    NextButton { step = 2 }
                 }
 
                 2 -> {
+                    StepTitle(t("你有哑铃等器械吗？", "Do you have dumbbells?"))
+                    Spacer(Modifier.height(16.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        GenderCard(
+                            selected = equipment == PlanStore.EQ_BODYWEIGHT,
+                            icon = Icons.Filled.Accessibility,
+                            label = t("徒手训练", "Bodyweight"),
+                            modifier = Modifier.weight(1f),
+                        ) { equipment = PlanStore.EQ_BODYWEIGHT }
+                        GenderCard(
+                            selected = equipment == PlanStore.EQ_DUMBBELL,
+                            icon = Icons.Filled.FitnessCenter,
+                            label = t("有哑铃", "Dumbbells"),
+                            modifier = Modifier.weight(1f),
+                        ) { equipment = PlanStore.EQ_DUMBBELL }
+                    }
+                    Spacer(Modifier.height(24.dp))
+                    NextButton { step = 3 }
+                }
+
+                3 -> {
+                    StepTitle(t("有需要避开的伤病吗？", "Any injuries to work around?"))
+                    Text(
+                        t("可多选，相关动作会自动排除", "Multi-select; affected moves are excluded"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    PlanStore.injuries.chunked(2).forEach { rowInj ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            rowInj.forEach { inj ->
+                                val selected = inj.id in injuriesSel
+                                Card(
+                                    onClick = {
+                                        injuriesSel = if (selected) injuriesSel - inj.id else injuriesSel + inj.id
+                                    },
+                                    modifier = Modifier.weight(1f).padding(vertical = 4.dp),
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(12.dp),
+                                    ) {
+                                        Icon(
+                                            Icons.Filled.Healing,
+                                            contentDescription = null,
+                                            tint = if (selected) MaterialTheme.colorScheme.primary
+                                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            (if (selected) "✓ " else "") + t(inj.zh, inj.en),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    if (injuriesSel.isNotEmpty()) {
+                        TextButton(onClick = { injuriesSel = emptySet() }) {
+                            Text(t("清空（无伤病）", "Clear (no injuries)"))
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    NextButton {
+                        PlanStore.saveProfile(context, gender, age, equipment, injuriesSel)
+                        step = 4
+                    }
+                }
+
+                4 -> {
                     StepTitle(t("你希望增强什么？", "What's your goal?"))
                     Spacer(Modifier.height(16.dp))
                     val goalIcons = mapOf(
@@ -177,9 +251,11 @@ fun NewPlanScreen(
                                     label = t(g.zh, g.en),
                                     modifier = Modifier.weight(1f),
                                 ) {
-                                    PlanStore.saveProfile(context, gender, age)
-                                    plan = PlanStore.generate(gender, age, g.id)
-                                    step = 3
+                                    PlanStore.saveProfile(context, gender, age, equipment, injuriesSel)
+                                    val p = PlanStore.generate(gender, age, g.id, equipment, injuriesSel)
+                                    plan = p
+                                    editItems = p.items
+                                    step = 5
                                 }
                             }
                         }
@@ -187,57 +263,101 @@ fun NewPlanScreen(
                     }
                 }
 
-                3 -> {
+                5 -> {
                     val p = plan ?: return@Column
-                    StepTitle(t("为你生成定制计划", "Your custom plan is ready"))
-                    Spacer(Modifier.height(8.dp))
+                    StepTitle(t("确认你的计划", "Confirm your plan"))
                     Text(
                         t(
-                            "根据资料（${if (gender == PlanStore.GENDER_MALE) "男" else "女"} · $age 岁）与目标定制",
-                            "Based on your profile ($age) and goal",
+                            "可替换、移除或添加动作，满意后再保存",
+                            "Replace, remove or add moves before saving",
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(16.dp))
-                    Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(16.dp)) {
-                            Text(p.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(8.dp))
-                            p.items.forEachIndexed { i, item ->
-                                val ex = ExerciseLibrary.byId(item.exerciseId)
-                                val load = if (item.durationSec != null) {
-                                    t("${item.sets} 组 × ${item.durationSec} 秒", "${item.sets} × ${item.durationSec}s")
-                                } else {
-                                    t("${item.sets} 组 × ${item.reps} 次", "${item.sets} × ${item.reps} reps")
+                    editItems.forEachIndexed { i, item ->
+                        val ex = ExerciseLibrary.byId(item.exerciseId)
+                        val load = if (item.durationSec != null) {
+                            t("${item.sets} 组 × ${item.durationSec} 秒", "${item.sets} × ${item.durationSec}s")
+                        } else {
+                            t("${item.sets} 组 × ${item.reps} 次", "${item.sets} × ${item.reps} reps")
+                        }
+                        Card(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(start = 16.dp, end = 4.dp),
+                            ) {
+                                Column(Modifier.weight(1f).padding(vertical = 12.dp)) {
+                                    Text(ex.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                                    Text(
+                                        "$load · ${t("休息 ${item.restSec} 秒", "rest ${item.restSec}s")}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
                                 }
-                                Text(
-                                    "${i + 1}. ${ex.name} · $load",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(vertical = 2.dp),
-                                )
+                                IconButton(onClick = { pickIndex = i; showPicker = true }) {
+                                    Icon(Icons.Filled.Refresh, contentDescription = t("替换", "Replace"))
+                                }
+                                IconButton(onClick = {
+                                    if (editItems.size > 1) editItems = editItems.toMutableList().also { it.removeAt(i) }
+                                }) {
+                                    Icon(Icons.Filled.Close, contentDescription = t("移除", "Remove"))
+                                }
                             }
                         }
                     }
+                    OutlinedButton(
+                        onClick = { pickIndex = -1; showPicker = true },
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                    ) { Text(t("+ 添加动作", "+ Add Exercise")) }
+
                     Spacer(Modifier.height(24.dp))
                     Button(
                         onClick = {
-                            PlanStore.addPlan(context, p)
-                            onStartPlan(p.id)
+                            val saved = p.copy(items = editItems)
+                            PlanStore.addPlan(context, saved)
+                            onStartPlan(saved.id)
                         },
                         modifier = Modifier.fillMaxWidth(),
+                        enabled = editItems.isNotEmpty(),
                     ) { Text(t("保存并开始训练", "Save & Start")) }
                     Spacer(Modifier.height(8.dp))
                     OutlinedButton(
                         onClick = {
-                            PlanStore.addPlan(context, p)
+                            val saved = p.copy(items = editItems)
+                            PlanStore.addPlan(context, saved)
                             onSaved()
                         },
                         modifier = Modifier.fillMaxWidth(),
+                        enabled = editItems.isNotEmpty(),
                     ) { Text(t("保存到首页", "Save to Home")) }
                 }
             }
         }
+    }
+
+    if (showPicker) {
+        val exclude = editItems.map { it.exerciseId }.toSet()
+        val cands = PlanStore.candidates(equipment, injuriesSel, exclude)
+        ExercisePickerDialog(
+            candidates = cands,
+            onDismiss = { showPicker = false },
+        ) { exId ->
+            showPicker = false
+            val newItem = PlanStore.buildItem(exId, age)
+            editItems = if (pickIndex >= 0) {
+                editItems.toMutableList().also { it[pickIndex] = newItem }
+            } else {
+                editItems + newItem
+            }
+        }
+    }
+}
+
+@Composable
+private fun NextButton(onClick: () -> Unit) {
+    Button(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Text(t("下一步", "Next"))
     }
 }
 
@@ -307,4 +427,41 @@ private fun GoalCard(
             )
         }
     }
+}
+
+@Composable
+private fun ExercisePickerDialog(
+    candidates: List<Exercise>,
+    onDismiss: () -> Unit,
+    onPick: (String) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(t("选择动作", "Pick an exercise")) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                if (candidates.isEmpty()) {
+                    Text(
+                        t("当前资料下没有更多可用动作", "No more exercises available for your profile"),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                candidates.forEach { ex ->
+                    TextButton(onClick = { onPick(ex.id) }) {
+                        Column {
+                            Text(ex.name, style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                ex.category,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(t("取消", "Cancel")) }
+        },
+    )
 }

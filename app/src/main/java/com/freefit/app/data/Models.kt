@@ -71,6 +71,10 @@ data class Exercise(
     val defaultReps: Int,
     /** 完整一个动作周期的秒数（驱动动画与计次节奏） */
     val cycleSec: Float,
+    /** 所需器械：bodyweight 徒手 / dumbbell 哑铃 */
+    val equipment: String = "bodyweight",
+    /** 有以下伤病时应避免该动作（injury id） */
+    val avoid: List<String> = emptyList(),
     val keyframes: List<Keyframe>,
 ) {
     val name: String get() = t(nameZh, nameEn)

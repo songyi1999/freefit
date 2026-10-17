@@ -263,11 +263,18 @@ fun HomeScreen(
             }
         }
 
-        // 个人资料（性别/年龄，用于定制计划）+ 修改入口
+        // 个人资料（性别/年龄/器械/伤病，用于定制计划）+ 修改入口
         item {
             val g = com.freefit.app.data.PlanStore.gender(context)
             val a = com.freefit.app.data.PlanStore.age(context)
+            val eq = com.freefit.app.data.PlanStore.equipment(context)
+            val inj = com.freefit.app.data.PlanStore.injuries(context)
             if (g != null && a > 0) {
+                val genderText = if (g == com.freefit.app.data.PlanStore.GENDER_MALE) "男" else "女"
+                val genderTextEn = if (g == com.freefit.app.data.PlanStore.GENDER_MALE) "Male" else "Female"
+                val eqText = if (eq == com.freefit.app.data.PlanStore.EQ_DUMBBELL) "哑铃" else "徒手"
+                val eqTextEn = if (eq == com.freefit.app.data.PlanStore.EQ_DUMBBELL) "Dumbbell" else "Bodyweight"
+                val injText = if (inj.isNotEmpty()) " · ${inj.size}${t("处伤病", " injuries")}" else ""
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
@@ -275,8 +282,8 @@ fun HomeScreen(
                 ) {
                     Text(
                         t(
-                            "资料：${if (g == com.freefit.app.data.PlanStore.GENDER_MALE) "男" else "女"} · $a 岁",
-                            "Profile: ${if (g == com.freefit.app.data.PlanStore.GENDER_MALE) "Male" else "Female"} · $a",
+                            "资料：$genderText · $a 岁 · $eqText$injText",
+                            "Profile: $genderTextEn · $a · $eqTextEn$injText",
                         ),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
