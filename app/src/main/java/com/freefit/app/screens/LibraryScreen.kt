@@ -40,8 +40,13 @@ import com.freefit.app.data.Exercise
 import com.freefit.app.data.ExerciseLibrary
 import com.freefit.app.data.ExerciseMode
 import com.freefit.app.fitness.AnimatedStickFigure
+import com.freefit.app.t
 
-private val difficultyNames = mapOf(1 to "入门", 2 to "进阶", 3 to "挑战")
+private fun difficultyName(d: Int): String = when (d) {
+    1 -> t("入门", "Beginner")
+    2 -> t("进阶", "Intermediate")
+    else -> t("挑战", "Advanced")
+}
 
 @Composable
 fun LibraryScreen(onOpenExercise: (String) -> Unit) {
@@ -69,8 +74,8 @@ fun LibraryScreen(onOpenExercise: (String) -> Unit) {
                         Column(Modifier.weight(1f)) {
                             Text(ex.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
                             Text(
-                                "${difficultyNames[ex.difficulty] ?: ""} · ${
-                                    if (ex.mode == ExerciseMode.REPS) "计次 ${ex.defaultReps} 次" else "计时 ${ex.defaultDurationSec} 秒"
+                                "${difficultyName(ex.difficulty)} · ${
+                                    if (ex.mode == ExerciseMode.REPS) t("计次 ${ex.defaultReps} 次", "${ex.defaultReps} reps") else t("计时 ${ex.defaultDurationSec} 秒", "${ex.defaultDurationSec} sec")
                                 }",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -129,7 +134,7 @@ fun ExerciseDetailScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(vertical = 8.dp),
             ) {
-                listOf(0.5f to "0.5x", 1f to "正常", 1.5f to "1.5x").forEach { (v, label) ->
+                listOf(0.5f to "0.5x", 1f to t("正常", "Normal"), 1.5f to "1.5x").forEach { (v, label) ->
                     if (speed == v) {
                         AssistChip(onClick = { speed = v }, label = { Text(label) })
                     } else {
@@ -140,11 +145,11 @@ fun ExerciseDetailScreen(
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AssistChip(onClick = {}, label = { Text(ex.category) })
-                AssistChip(onClick = {}, label = { Text(difficultyNames[ex.difficulty] ?: "") })
+                AssistChip(onClick = {}, label = { Text(difficultyName(ex.difficulty)) })
             }
 
             Spacer(Modifier.height(12.dp))
-            Text("目标肌群", style = MaterialTheme.typography.titleSmall)
+            Text(t("目标肌群", "Muscles"), style = MaterialTheme.typography.titleSmall)
             Text(
                 ex.muscles.joinToString("、"),
                 style = MaterialTheme.typography.bodyMedium,
@@ -152,7 +157,7 @@ fun ExerciseDetailScreen(
             )
 
             Spacer(Modifier.height(12.dp))
-            Text("动作要领", style = MaterialTheme.typography.titleSmall)
+            Text(t("动作要领", "How to Do It"), style = MaterialTheme.typography.titleSmall)
             ex.cues.forEachIndexed { i, cue ->
                 Text(
                     "${i + 1}. $cue",
@@ -164,11 +169,11 @@ fun ExerciseDetailScreen(
 
             Spacer(Modifier.height(24.dp))
             Button(onClick = onTry, modifier = Modifier.fillMaxWidth()) {
-                Text("试练一组")
+                Text(t("试练一组", "Try One Set"))
             }
             Spacer(Modifier.height(8.dp))
             OutlinedButton(onClick = onCamera, modifier = Modifier.fillMaxWidth()) {
-                Text("AI 摄像头纠错")
+                Text(t("AI 摄像头纠错", "AI Camera Check"))
             }
             Spacer(Modifier.height(24.dp))
         }

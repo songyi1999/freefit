@@ -55,6 +55,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.freefit.app.data.Exercise
 import com.freefit.app.fitness.TtsSpeaker
+import com.freefit.app.t
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.core.Delegate
@@ -89,11 +90,11 @@ fun PoseCameraScreen(ex: Exercise, onExit: () -> Unit) {
                 .fillMaxSize()
                 .padding(32.dp),
         ) {
-            Text("需要相机权限才能进行姿态识别", textAlign = TextAlign.Center)
+            Text(t("需要相机权限才能进行姿态识别", "Camera access is needed for pose detection"), textAlign = TextAlign.Center)
             Spacer(Modifier.height(16.dp))
-            Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text("授予权限") }
+            Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text(t("授予权限", "Grant")) }
             Spacer(Modifier.height(8.dp))
-            Button(onClick = onExit) { Text("返回") }
+            Button(onClick = onExit) { Text(t("返回", "Back")) }
         }
         return
     }
@@ -159,7 +160,7 @@ private fun CameraContent(ex: Exercise, onExit: () -> Unit) {
             Column(Modifier.weight(1f)) {
                 Text(ex.name, style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "AI 实时纠错 · 手机放在正侧方",
+                    t("AI 实时纠错 · 手机放在正侧方", "AI Form Check · phone at your side"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -168,7 +169,7 @@ private fun CameraContent(ex: Exercise, onExit: () -> Unit) {
                 facing = if (facing == CameraSelector.LENS_FACING_FRONT) CameraSelector.LENS_FACING_BACK
                 else CameraSelector.LENS_FACING_FRONT
             }) {
-                Icon(Icons.Filled.Cameraswitch, contentDescription = "切换摄像头")
+                Icon(Icons.Filled.Cameraswitch, contentDescription = t("切换摄像头", "Switch Camera"))
             }
         }
 
@@ -282,10 +283,10 @@ private fun CameraContent(ex: Exercise, onExit: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Text("完成次数（自动统计）", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(t("完成次数（自动统计）", "Reps (auto-counted)"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (!coach.lastPoseGood) {
                 Text(
-                    "未检测到完整人体",
+                    t("未检测到完整人体", "No full body detected"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )

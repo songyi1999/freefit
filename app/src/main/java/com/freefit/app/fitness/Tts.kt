@@ -2,6 +2,7 @@ package com.freefit.app.fitness
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
+import com.freefit.app.L10n
 import java.util.Locale
 
 /**
@@ -14,7 +15,8 @@ class TtsSpeaker(context: Context) {
     init {
         tts = TextToSpeech(context.applicationContext) { status ->
             ready = status == TextToSpeech.SUCCESS && tts?.let {
-                it.language == null || it.setLanguage(Locale.SIMPLIFIED_CHINESE) >= 0
+                val locale = if (L10n.english) Locale.US else Locale.SIMPLIFIED_CHINESE
+                it.setLanguage(locale) >= 0
             } == true
         }
     }

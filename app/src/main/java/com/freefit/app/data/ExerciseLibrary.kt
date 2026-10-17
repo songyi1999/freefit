@@ -46,9 +46,12 @@ object ExerciseLibrary {
 
     val all: List<Exercise> = listOf(
         Exercise(
-            id = "squat", name = "深蹲", category = "下肢", difficulty = 1,
-            muscles = listOf("股四头肌", "臀大肌", "腘绳肌"),
-            cues = listOf("双脚与肩同宽，脚尖微微外展", "下蹲时臀部向后坐，膝盖对准脚尖方向", "蹲至大腿约与地面平行即可", "起身时收紧核心，背部全程挺直"),
+            id = "squat", nameZh = "深蹲", nameEn = "Squat",
+            categoryZh = "下肢", categoryEn = "Lower Body", difficulty = 1,
+            musclesZh = listOf("股四头肌", "臀大肌", "腘绳肌"),
+            musclesEn = listOf("Quads", "Glutes", "Hamstrings"),
+            cuesZh = listOf("双脚与肩同宽，脚尖微微外展", "下蹲时臀部向后坐，膝盖对准脚尖方向", "蹲至大腿约与地面平行即可", "起身时收紧核心，背部全程挺直"),
+            cuesEn = listOf("Feet shoulder-width apart, toes slightly out", "Sit hips back, knees tracking over toes", "Squat until thighs are near parallel", "Brace your core, keep back straight"),
             mode = TIMED, defaultDurationSec = 45, defaultReps = 15, cycleSec = 3f,
             keyframes = listOf(
                 Keyframe(0.0f, poseSide( // 站立，双臂前平举保持平衡
@@ -67,9 +70,12 @@ object ExerciseLibrary {
             ),
         ),
         Exercise(
-            id = "pushup", name = "俯卧撑", category = "上肢", difficulty = 2,
-            muscles = listOf("胸大肌", "肱三头肌", "三角肌前束"),
-            cues = listOf("双手略宽于肩，手指向前", "从头到脚呈一条直线，核心收紧", "下落时肘部约 45° 夹角，胸口贴近地面", "撑起时呼气，不要塌腰撅臀"),
+            id = "pushup", nameZh = "俯卧撑", nameEn = "Push-up",
+            categoryZh = "上肢", categoryEn = "Upper Body", difficulty = 2,
+            musclesZh = listOf("胸大肌", "肱三头肌", "三角肌前束"),
+            musclesEn = listOf("Chest", "Triceps", "Front Delts"),
+            cuesZh = listOf("双手略宽于肩，手指向前", "从头到脚呈一条直线，核心收紧", "下落时肘部约 45° 夹角，胸口贴近地面", "撑起时呼气，不要塌腰撅臀"),
+            cuesEn = listOf("Hands slightly wider than shoulders", "Keep a straight line head to heels", "Lower until chest is near the floor", "Exhale as you press up, no sagging hips"),
             mode = REPS, defaultDurationSec = 40, defaultReps = 12, cycleSec = 2.5f,
             keyframes = listOf(
                 Keyframe(0.0f, poseSide( // 撑起
@@ -93,9 +99,12 @@ object ExerciseLibrary {
             ),
         ),
         Exercise(
-            id = "plank", name = "平板支撑", category = "核心", difficulty = 1,
-            muscles = listOf("腹直肌", "腹横肌", "竖脊肌"),
-            cues = listOf("肘部在肩正下方，前臂撑地", "从头到脚踝呈一条直线", "收紧腹部与臀部，不塌腰不撅臀", "自然呼吸，不要憋气"),
+            id = "plank", nameZh = "平板支撑", nameEn = "Plank",
+            categoryZh = "核心", categoryEn = "Core", difficulty = 1,
+            musclesZh = listOf("腹直肌", "腹横肌", "竖脊肌"),
+            musclesEn = listOf("Abs", "Deep Core", "Lower Back"),
+            cuesZh = listOf("肘部在肩正下方，前臂撑地", "从头到脚踝呈一条直线", "收紧腹部与臀部，不塌腰不撅臀", "自然呼吸，不要憋气"),
+            cuesEn = listOf("Elbows under shoulders, forearms down", "Straight line from head to ankles", "Squeeze abs and glutes, no sagging", "Breathe naturally, don't hold breath"),
             mode = TIMED, defaultDurationSec = 40, defaultReps = 1, cycleSec = 4f,
             keyframes = listOf(
                 Keyframe(0.0f, poseSide( // 前臂支撑
@@ -119,9 +128,12 @@ object ExerciseLibrary {
             ),
         ),
         Exercise(
-            id = "crunch", name = "卷腹", category = "核心", difficulty = 1,
-            muscles = listOf("腹直肌"),
-            cues = listOf("仰卧屈膝，双脚踩实地面", "双手轻扶耳侧，不要抱头发力", "呼气时卷起肩胛骨离开地面", "下落时缓慢控制，不要完全放松"),
+            id = "crunch", nameZh = "卷腹", nameEn = "Crunch",
+            categoryZh = "核心", categoryEn = "Core", difficulty = 1,
+            musclesZh = listOf("腹直肌"),
+            musclesEn = listOf("Abs"),
+            cuesZh = listOf("仰卧屈膝，双脚踩实地面", "双手轻扶耳侧，不要抱头发力", "呼气时卷起肩胛骨离开地面", "下落时缓慢控制，不要完全放松"),
+            cuesEn = listOf("Lie back with knees bent, feet flat", "Hands lightly by ears, don't pull your neck", "Exhale and lift shoulder blades off floor", "Lower slowly, keep tension"),
             mode = REPS, defaultDurationSec = 40, defaultReps = 16, cycleSec = 2.5f,
             keyframes = listOf(
                 Keyframe(0.0f, poseSide( // 仰卧，手扶耳侧
@@ -145,9 +157,12 @@ object ExerciseLibrary {
             ),
         ),
         Exercise(
-            id = "jumpingjack", name = "开合跳", category = "燃脂", difficulty = 1,
-            muscles = listOf("全身", "肩部", "小腿"),
-            cues = listOf("起跳时双脚向外分开落地", "同时双臂经体侧上举至头顶击掌", "再跳回并拢，双臂放回体侧", "保持节奏，前脚掌缓冲落地"),
+            id = "jumpingjack", nameZh = "开合跳", nameEn = "Jumping Jacks",
+            categoryZh = "燃脂", categoryEn = "Cardio", difficulty = 1,
+            musclesZh = listOf("全身", "肩部", "小腿"),
+            musclesEn = listOf("Full Body", "Shoulders", "Calves"),
+            cuesZh = listOf("起跳时双脚向外分开落地", "同时双臂经体侧上举至头顶击掌", "再跳回并拢，双臂放回体侧", "保持节奏，前脚掌缓冲落地"),
+            cuesEn = listOf("Jump feet apart as you land", "Raise arms overhead, clap at top", "Jump back in, arms down", "Stay rhythmic, land on the balls of feet"),
             mode = TIMED, defaultDurationSec = 30, defaultReps = 30, cycleSec = 1.2f,
             keyframes = listOf(
                 Keyframe(0.0f, poseFront()), // 并拢站立
@@ -161,9 +176,12 @@ object ExerciseLibrary {
             ),
         ),
         Exercise(
-            id = "highknees", name = "高抬腿", category = "燃脂", difficulty = 2,
-            muscles = listOf("髂腰肌", "股四头肌", "小腿"),
-            cues = listOf("膝盖抬至髋部高度", "躯干略前倾，核心收紧", "双臂自然前后摆动配合节奏", "前脚掌着地，频率由慢到快"),
+            id = "highknees", nameZh = "高抬腿", nameEn = "High Knees",
+            categoryZh = "燃脂", categoryEn = "Cardio", difficulty = 2,
+            musclesZh = listOf("髂腰肌", "股四头肌", "小腿"),
+            musclesEn = listOf("Hip Flexors", "Quads", "Calves"),
+            cuesZh = listOf("膝盖抬至髋部高度", "躯干略前倾，核心收紧", "双臂自然前后摆动配合节奏", "前脚掌着地，频率由慢到快"),
+            cuesEn = listOf("Drive knees to hip height", "Slight forward lean, core tight", "Swing arms with the rhythm", "Stay on the balls of feet"),
             mode = TIMED, defaultDurationSec = 30, defaultReps = 40, cycleSec = 1.0f,
             keyframes = listOf(
                 Keyframe(0.0f, poseFront()),
@@ -182,9 +200,12 @@ object ExerciseLibrary {
             ),
         ),
         Exercise(
-            id = "mountainclimber", name = "登山跑", category = "核心", difficulty = 2,
-            muscles = listOf("腹直肌", "肩部", "髋屈肌"),
-            cues = listOf("俯撑姿势，双手位于肩正下方", "腹部收紧，臀部不要抬起过高", "双腿交替快速向胸口提膝", "保持肩部稳定，节奏均匀"),
+            id = "mountainclimber", nameZh = "登山跑", nameEn = "Mountain Climbers",
+            categoryZh = "核心", categoryEn = "Core", difficulty = 2,
+            musclesZh = listOf("腹直肌", "肩部", "髋屈肌"),
+            musclesEn = listOf("Abs", "Shoulders", "Hip Flexors"),
+            cuesZh = listOf("俯撑姿势，双手位于肩正下方", "腹部收紧，臀部不要抬起过高", "双腿交替快速向胸口提膝", "保持肩部稳定，节奏均匀"),
+            cuesEn = listOf("Push-up position, hands under shoulders", "Brace core, don't pike hips too high", "Drive knees to chest alternately", "Keep shoulders steady and even"),
             mode = TIMED, defaultDurationSec = 30, defaultReps = 30, cycleSec = 1.2f,
             keyframes = listOf(
                 Keyframe(0.0f, poseSide( // 俯撑
@@ -208,9 +229,12 @@ object ExerciseLibrary {
             ),
         ),
         Exercise(
-            id = "glutebridge", name = "臀桥", category = "下肢", difficulty = 1,
-            muscles = listOf("臀大肌", "腘绳肌", "核心"),
-            cues = listOf("仰卧屈膝，双脚踩地与髋同宽", "脚跟发力，将臀部抬至肩髋膝呈一条直线", "顶点收紧臀部停顿一秒", "下落时缓慢控制，不要砸向地面"),
+            id = "glutebridge", nameZh = "臀桥", nameEn = "Glute Bridge",
+            categoryZh = "下肢", categoryEn = "Lower Body", difficulty = 1,
+            musclesZh = listOf("臀大肌", "腘绳肌", "核心"),
+            musclesEn = listOf("Glutes", "Hamstrings", "Core"),
+            cuesZh = listOf("仰卧屈膝，双脚踩地与髋同宽", "脚跟发力，将臀部抬至肩髋膝呈一条直线", "顶点收紧臀部停顿一秒", "下落时缓慢控制，不要砸向地面"),
+            cuesEn = listOf("Lie back, feet hip-width apart", "Drive through heels to a straight line", "Squeeze glutes at the top", "Lower slowly, don't drop"),
             mode = REPS, defaultDurationSec = 45, defaultReps = 15, cycleSec = 3f,
             keyframes = listOf(
                 Keyframe(0.0f, poseSide( // 仰卧，臀部着地
@@ -234,9 +258,12 @@ object ExerciseLibrary {
             ),
         ),
         Exercise(
-            id = "lunge", name = "弓步蹲", category = "下肢", difficulty = 2,
-            muscles = listOf("股四头肌", "臀大肌", "平衡"),
-            cues = listOf("向前迈一大步，后脚跟抬起", "垂直下蹲至前腿膝盖约 90°", "前侧膝盖对准脚尖，不超过脚尖过多", "前腿发力站起，双手叉腰保持平衡"),
+            id = "lunge", nameZh = "弓步蹲", nameEn = "Lunge",
+            categoryZh = "下肢", categoryEn = "Lower Body", difficulty = 2,
+            musclesZh = listOf("股四头肌", "臀大肌", "平衡"),
+            musclesEn = listOf("Quads", "Glutes", "Balance"),
+            cuesZh = listOf("向前迈一大步，后脚跟抬起", "垂直下蹲至前腿膝盖约 90°", "前侧膝盖对准脚尖，不超过脚尖过多", "前腿发力站起，双手叉腰保持平衡"),
+            cuesEn = listOf("Step forward into a long stance", "Drop until front knee is ~90°", "Front knee tracks over toes", "Drive through front leg to stand"),
             mode = REPS, defaultDurationSec = 45, defaultReps = 12, cycleSec = 3f,
             keyframes = listOf(
                 Keyframe(0.0f, poseSide( // 站立叉腰
@@ -255,9 +282,12 @@ object ExerciseLibrary {
             ),
         ),
         Exercise(
-            id = "superman", name = "超人式", category = "核心", difficulty = 1,
-            muscles = listOf("竖脊肌", "臀大肌", "下背"),
-            cues = listOf("俯卧，双臂向前伸直", "呼气时同时抬起手臂、胸口和双腿", "目视地面，颈部保持中立", "顶端停顿一秒后缓慢下落"),
+            id = "superman", nameZh = "超人式", nameEn = "Superman",
+            categoryZh = "核心", categoryEn = "Core", difficulty = 1,
+            musclesZh = listOf("竖脊肌", "臀大肌", "下背"),
+            musclesEn = listOf("Erector Spinae", "Glutes", "Lower Back"),
+            cuesZh = listOf("俯卧，双臂向前伸直", "呼气时同时抬起手臂、胸口和双腿", "目视地面，颈部保持中立", "顶端停顿一秒后缓慢下落"),
+            cuesEn = listOf("Lie prone, arms extended forward", "Exhale, lift arms, chest and legs", "Gaze down, neck neutral", "Pause a second, lower slowly"),
             mode = TIMED, defaultDurationSec = 30, defaultReps = 15, cycleSec = 3f,
             keyframes = listOf(
                 Keyframe(0.0f, poseSide( // 俯卧，手臂前伸贴地
@@ -286,8 +316,10 @@ object ExerciseLibrary {
 
     /** 组间休息小人：叉腰调整呼吸的轻微起伏动画，不列入动作库 */
     val restFigure = Exercise(
-        id = "rest", name = "休息", category = "休息", difficulty = 1,
-        muscles = emptyList(), cues = emptyList(),
+        id = "rest", nameZh = "休息", nameEn = "Rest",
+        categoryZh = "休息", categoryEn = "Rest", difficulty = 1,
+        musclesZh = emptyList(), musclesEn = emptyList(),
+        cuesZh = emptyList(), cuesEn = emptyList(),
         mode = TIMED, defaultDurationSec = 0, defaultReps = 0, cycleSec = 3.6f,
         keyframes = listOf(
             Keyframe(0.0f, poseSide( // 叉腰站立，呼气

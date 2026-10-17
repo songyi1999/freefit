@@ -34,13 +34,14 @@ import com.freefit.app.screens.HistoryScreen
 import com.freefit.app.screens.HomeScreen
 import com.freefit.app.screens.LibraryScreen
 import com.freefit.app.ui.FreeFitTheme
+import com.freefit.app.t
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             FreeFitTheme {
-                FreeFitApp()
+                AppRoot()
             }
         }
     }
@@ -49,13 +50,13 @@ class MainActivity : ComponentActivity() {
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
 
 @Composable
-fun FreeFitApp() {
+fun AppRoot() {
     val nav = rememberNavController()
     val tabs = listOf(
-        Tab("home", "首页", Icons.Filled.Home),
-        Tab("library", "动作库", Icons.Filled.FitnessCenter),
-        Tab("run", "跑步", Icons.Filled.DirectionsRun),
-        Tab("history", "记录", Icons.Filled.History),
+        Tab("home", t("首页", "Home"), Icons.Filled.Home),
+        Tab("library", t("动作库", "Library"), Icons.Filled.FitnessCenter),
+        Tab("run", t("跑步", "Run"), Icons.Filled.DirectionsRun),
+        Tab("history", t("记录", "History"), Icons.Filled.History),
     )
     val tabRoutes = tabs.map { it.route }.toSet()
 

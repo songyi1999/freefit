@@ -1,5 +1,8 @@
 package com.freefit.app.data
 
+import com.freefit.app.L10n
+import com.freefit.app.t
+
 /** 归一化骨骼点，x/y 取值 0..1，坐标系：x 向右、y 向下 */
 data class SkelPoint(val x: Float, val y: Float) {
     fun lerp(o: SkelPoint, t: Float) = SkelPoint(x + (o.x - x) * t, y + (o.y - y) * t)
@@ -50,13 +53,17 @@ enum class ExerciseMode { TIMED, REPS }
 
 data class Exercise(
     val id: String,
-    val name: String,
-    val category: String,
+    val nameZh: String,
+    val nameEn: String = "",
+    val categoryZh: String,
+    val categoryEn: String = "",
     /** 1 入门 / 2 进阶 / 3 挑战 */
     val difficulty: Int,
-    val muscles: List<String>,
+    val musclesZh: List<String>,
+    val musclesEn: List<String> = emptyList(),
     /** 动作要领 */
-    val cues: List<String>,
+    val cuesZh: List<String>,
+    val cuesEn: List<String> = emptyList(),
     val mode: ExerciseMode,
     /** 计时模式的默认时长（秒） */
     val defaultDurationSec: Int,
@@ -65,7 +72,12 @@ data class Exercise(
     /** 完整一个动作周期的秒数（驱动动画与计次节奏） */
     val cycleSec: Float,
     val keyframes: List<Keyframe>,
-)
+) {
+    val name: String get() = t(nameZh, nameEn)
+    val category: String get() = t(categoryZh, categoryEn)
+    val muscles: List<String> get() = if (L10n.english && musclesEn.isNotEmpty()) musclesEn else musclesZh
+    val cues: List<String> get() = if (L10n.english && cuesEn.isNotEmpty()) cuesEn else cuesZh
+}
 
 data class PlanItem(
     val exerciseId: String,
@@ -77,8 +89,15 @@ data class PlanItem(
 
 data class WorkoutPlan(
     val id: String,
-    val name: String,
-    val desc: String,
-    val level: String,
+    val nameZh: String,
+    val nameEn: String = "",
+    val descZh: String,
+    val descEn: String = "",
+    val levelZh: String,
+    val levelEn: String = "",
     val items: List<PlanItem>,
-)
+) {
+    val name: String get() = t(nameZh, nameEn)
+    val desc: String get() = t(descZh, descEn)
+    val level: String get() = t(levelZh, levelEn)
+}

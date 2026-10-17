@@ -1,5 +1,6 @@
 package com.freefit.app.screens
 
+import com.freefit.app.t
 import java.time.LocalDate
 
 /** 连续打卡天数：从今天（或昨天）往回数连续有记录的天数 */
@@ -16,7 +17,7 @@ fun streakDays(dates: Collection<String>): Int {
 }
 
 fun formatDuration(sec: Int): String = when {
-    sec >= 3600 -> "${sec / 3600} 小时 ${(sec % 3600) / 60} 分"
-    sec >= 60 -> "${sec / 60} 分钟"
-    else -> "$sec 秒"
+    sec >= 3600 -> t("${sec / 3600} 小时 ${(sec % 3600) / 60} 分", "${sec / 3600}h ${(sec % 3600) / 60}m")
+    sec >= 60 -> t("${sec / 60} 分钟", "${sec / 60} min")
+    else -> t("$sec 秒", "$sec sec")
 }

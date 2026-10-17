@@ -4,9 +4,11 @@ object Plans {
 
     val all: List<WorkoutPlan> = listOf(
         WorkoutPlan(
-            id = "p1", name = "新手全身启动",
-            desc = "隔天练一次，动作简单，帮你建立训练习惯",
-            level = "入门",
+            id = "p1",
+            nameZh = "新手全身启动", nameEn = "Beginner Full Body",
+            descZh = "隔天练一次，动作简单，帮你建立训练习惯",
+            descEn = "Simple moves every other day to build the habit",
+            levelZh = "入门", levelEn = "Beginner",
             items = listOf(
                 PlanItem("squat", sets = 3, reps = 12, restSec = 45),
                 PlanItem("pushup", sets = 3, reps = 8, restSec = 45),
@@ -15,9 +17,11 @@ object Plans {
             ),
         ),
         WorkoutPlan(
-            id = "p2", name = "核心强化",
-            desc = "针对性腰腹训练，改善核心力量与体态",
-            level = "进阶",
+            id = "p2",
+            nameZh = "核心强化", nameEn = "Core Strength",
+            descZh = "针对性腰腹训练，改善核心力量与体态",
+            descEn = "Targeted core work for strength and posture",
+            levelZh = "进阶", levelEn = "Intermediate",
             items = listOf(
                 PlanItem("plank", sets = 3, durationSec = 45, restSec = 30),
                 PlanItem("crunch", sets = 3, reps = 16, restSec = 30),
@@ -26,9 +30,11 @@ object Plans {
             ),
         ),
         WorkoutPlan(
-            id = "p3", name = "燃脂 HIIT",
-            desc = "高强度间歇循环，短时间全身燃脂",
-            level = "挑战",
+            id = "p3",
+            nameZh = "燃脂 HIIT", nameEn = "Fat Burn HIIT",
+            descZh = "高强度间歇循环，短时间全身燃脂",
+            descEn = "High-intensity intervals for a fast full-body burn",
+            levelZh = "挑战", levelEn = "Advanced",
             items = listOf(
                 PlanItem("jumpingjack", sets = 4, durationSec = 30, restSec = 20),
                 PlanItem("squat", sets = 4, durationSec = 45, restSec = 20),

@@ -45,6 +45,7 @@ import com.freefit.app.data.PlanItem
 import com.freefit.app.data.WorkoutPlan
 import com.freefit.app.data.db.AppDatabase
 import com.freefit.app.data.db.SessionEntity
+import com.freefit.app.t
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.Locale
@@ -58,9 +59,12 @@ internal fun formatMmSs(sec: Float): String {
 /** 动作库「试练一组」用的临时计划 */
 fun adhocPlan(ex: Exercise): WorkoutPlan = WorkoutPlan(
     id = "adhoc-${ex.id}",
-    name = "试练 · ${ex.name}",
-    desc = "",
-    level = "试练",
+    nameZh = "试练 · ${ex.nameZh}",
+    nameEn = if (ex.nameEn.isNotEmpty()) "Practice · ${ex.nameEn}" else "",
+    descZh = "",
+    descEn = "",
+    levelZh = "试练",
+    levelEn = "Practice",
     items = listOf(
         PlanItem(
             exerciseId = ex.id,
@@ -123,13 +127,13 @@ fun PlayerScreen(plan: WorkoutPlan, onExit: () -> Unit) {
     if (showQuitDialog) {
         AlertDialog(
             onDismissRequest = { showQuitDialog = false },
-            title = { Text("结束训练？") },
-            text = { Text("已完成的部分会保存到训练记录。") },
+            title = { Text(t("结束训练？", "End workout?")) },
+            text = { Text(t("已完成的部分会保存到训练记录。", "Completed sets will be saved to history.")) },
             confirmButton = {
-                TextButton(onClick = { showQuitDialog = false; controller.finish() }) { Text("结束训练") }
+                TextButton(onClick = { showQuitDialog = false; controller.finish() }) { Text(t("结束训练", "End")) }
             },
             dismissButton = {
-                TextButton(onClick = { showQuitDialog = false }) { Text("继续训练") }
+                TextButton(onClick = { showQuitDialog = false }) { Text(t("继续训练", "Keep Going")) }
             },
         )
     }
@@ -147,12 +151,12 @@ fun PlayerScreen(plan: WorkoutPlan, onExit: () -> Unit) {
         // 顶栏：退出 / 计划名 / 总进度
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = { if (s.phase == PlayerPhase.DONE) onExit() else showQuitDialog = true }) {
-                Icon(Icons.Filled.Close, contentDescription = "退出")
+                Icon(Icons.Filled.Close, contentDescription = t("退出", "Exit"))
             }
             Column(Modifier.weight(1f)) {
                 Text(plan.name, style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "${step.ex.name} · 第 ${step.setIndex}/${step.totalSets} 组",
+                    t("${step.ex.name} · 第 ${step.setIndex}/${step.totalSets} 组", "${step.ex.name} · Set ${step.setIndex}/${step.totalSets}"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -203,19 +207,19 @@ fun PlayerScreen(plan: WorkoutPlan, onExit: () -> Unit) {
                         contentDescription = null,
                     )
                     Spacer(Modifier.width(4.dp))
-                    Text(if (s.paused) "继续" else "暂停")
+                    Text(if (s.paused) t("继续", "Resume") else t("暂停", "Pause"))
                 }
                 if (s.phase == PlayerPhase.REST) {
                     Button(onClick = controller::skipRest, modifier = Modifier.weight(1f)) {
-                        Text("跳过休息")
+                        Text(t("跳过休息", "Skip Rest"))
                     }
                 } else {
                     OutlinedButton(onClick = controller::skipStep, modifier = Modifier.weight(1f)) {
-                        Text("跳过本组")
+                        Text(t("跳过本组", "Skip Set"))
                     }
                 }
                 TextButton(onClick = { showQuitDialog = true }, modifier = Modifier.weight(1f)) {
-                    Text("结束")
+                    Text(t("结束", "End"))
                 }
             }
         }
@@ -233,7 +237,7 @@ private fun ActiveContent(step: PlayerController.Step, s: PlayerController.State
         Spacer(Modifier.height(8.dp))
         Text(step.ex.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text(
-            if (s.phase == PlayerPhase.READY) "准备开始" else if (step.ex.mode == ExerciseMode.REPS) "跟着节奏完成次数" else "坚持住，跟着小人动起来",
+            if (s.phase == PlayerPhase.READY) t("准备开始", "Get Ready") else if (step.ex.mode == ExerciseMode.REPS) t("跟着节奏完成次数", "Match the tempo") else t("坚持住，跟着小人动起来", "Keep going, follow the figure"),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -247,12 +251,12 @@ private fun ActiveContent(step: PlayerController.Step, s: PlayerController.State
         )
         val big = when {
             s.phase == PlayerPhase.READY -> ceil(s.remain).toInt().toString()
-            step.ex.mode == ExerciseMode.REPS -> "${s.currentRep.coerceAtMost(step.totalReps)} / ${step.totalReps} 次"
+            step.ex.mode == ExerciseMode.REPS -> t("${s.currentRep.coerceAtMost(step.totalReps)} / ${step.totalReps} 次", "${s.currentRep.coerceAtMost(step.totalReps)}/${step.totalReps} reps")
             else -> formatMmSs(s.remain)
         }
         Text(big, style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold)
         if (s.paused) {
-            Text("已暂停", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 4.dp))
+            Text(t("已暂停", "Paused"), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 4.dp))
         } else {
             Text(
                 step.ex.cues.firstOrNull() ?: "",
@@ -275,7 +279,7 @@ private fun RestContent(step: PlayerController.Step, s: PlayerController.State) 
             .padding(16.dp),
     ) {
         Spacer(Modifier.height(24.dp))
-        Text("休息一下", style = MaterialTheme.typography.headlineSmall)
+        Text(t("休息一下", "Take a Rest"), style = MaterialTheme.typography.headlineSmall)
         Text(
             formatMmSs(s.remain),
             style = MaterialTheme.typography.displayLarge,
@@ -284,13 +288,13 @@ private fun RestContent(step: PlayerController.Step, s: PlayerController.State) 
         )
         step.next?.let { next ->
             Text(
-                "下一组：${next.name}",
+                t("下一组：${next.name}", "Next: ${next.name}"),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
             )
         }
         Text(
-            "小口补水，调整呼吸",
+            t("小口补水，调整呼吸", "Sip water, steady your breath"),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -316,27 +320,27 @@ private fun DoneContent(s: PlayerController.State, controller: PlayerController,
     ) {
         Text("🎉", style = MaterialTheme.typography.displayLarge)
         Spacer(Modifier.height(8.dp))
-        Text("训练完成", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text(t("训练完成", "Workout Complete"), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(24.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(formatMmSs(s.elapsed), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
-                Text("总时长", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(t("总时长", "Total Time"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("${s.doneSets}/${controller.totalSteps}", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
-                Text("完成组数", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(t("完成组数", "Sets Done"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (s.saved) {
             Text(
-                "记录已保存",
+                t("记录已保存", "Saved to History"),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(top = 16.dp),
             )
         }
         Spacer(Modifier.height(32.dp))
-        Button(onClick = onExit) { Text("返回") }
+        Button(onClick = onExit) { Text(t("返回", "Done")) }
     }
 }

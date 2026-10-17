@@ -8,6 +8,7 @@ import com.freefit.app.data.ExerciseLibrary
 import com.freefit.app.data.ExerciseMode
 import com.freefit.app.data.PlanItem
 import com.freefit.app.data.WorkoutPlan
+import com.freefit.app.t
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -66,7 +67,7 @@ class PlayerController(
                 val remain = s.remain - dt
                 speakCountdown(remain)
                 if (remain <= 0f) {
-                    tts?.speak("开始")
+                    tts?.speak(t("开始", "Go"))
                     cues?.setStart()
                     s.copy(phase = PlayerPhase.ACTIVE, remain = step.targetSec, elapsed = s.elapsed + dt)
                 } else {
@@ -84,18 +85,18 @@ class PlayerController(
                     val doneSets = s.doneSets + 1
                     when {
                         step.isLast -> {
-                            tts?.speak("训练完成，辛苦了")
+                            tts?.speak(t("训练完成，辛苦了", "Great job, workout complete"))
                             cues?.finish()
                             s.copy(phase = PlayerPhase.DONE, remain = 0f, doneSets = doneSets,
                                 currentRep = step.totalReps, elapsed = s.elapsed + dt)
                                 .also { save(it.elapsed, doneSets) }
                         }
                         step.restSec <= 0 -> {
-                            tts?.speak("直接开始下一组")
+                            tts?.speak(t("直接开始下一组", "Next set, go"))
                             advance(s, doneSets, s.elapsed + dt)
                         }
                         else -> {
-                            tts?.speak("休息")
+                            tts?.speak(t("休息", "Rest"))
                             cues?.setDone()
                             State(phase = PlayerPhase.REST, stepIndex = s.stepIndex,
                                 remain = step.restSec.toFloat(), elapsed = s.elapsed + dt, doneSets = doneSets)
@@ -130,7 +131,7 @@ class PlayerController(
     fun skipStep() {
         val s = state
         if (s.phase == PlayerPhase.DONE) return
-        tts?.speak("跳过")
+        tts?.speak(t("跳过", "Skipped"))
         if (steps[s.stepIndex].isLast) {
             state = s.copy(phase = PlayerPhase.DONE, remain = 0f)
             save(s.elapsed, s.doneSets)
@@ -154,7 +155,7 @@ class PlayerController(
         if (s.phase == PlayerPhase.DONE) return
         val worthSaving = s.elapsed >= 30f || s.doneSets > 0
         if (worthSaving) {
-            tts?.speak("训练结束")
+            tts?.speak(t("训练结束", "Workout ended"))
             save(s.elapsed, s.doneSets)
         }
         state = s.copy(phase = PlayerPhase.DONE, remain = 0f, paused = false)

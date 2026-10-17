@@ -45,6 +45,7 @@ import com.freefit.app.data.db.AppDatabase
 import com.freefit.app.update.UpdateInfo
 import com.freefit.app.update.UpdateState
 import com.freefit.app.update.Updater
+import com.freefit.app.t
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -100,7 +101,7 @@ fun HomeScreen(
                 Column(Modifier.weight(1f)) {
                     Text("FreeFit", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                     Text(
-                        "自律给你自由",
+                        t("自律给我自由", "Self-discipline sets me free"),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -116,13 +117,13 @@ fun HomeScreen(
                             tint = MaterialTheme.colorScheme.primary,
                         )
                         Spacer(Modifier.width(6.dp))
-                        Text("连续 $streak 天", style = MaterialTheme.typography.titleSmall)
+                        Text(t("连续 $streak 天", "$streak-day streak"), style = MaterialTheme.typography.titleSmall)
                     }
                 }
             }
             if (totalMin > 0) {
                 Text(
-                    "累计训练 $totalMin 分钟",
+                    t("累计训练 $totalMin 分钟", "$totalMin min trained in total"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
@@ -141,9 +142,9 @@ fun HomeScreen(
                             tint = MaterialTheme.colorScheme.primary,
                         )
                         Spacer(Modifier.height(6.dp))
-                        Text("AI 实时纠错", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        Text(t("AI 实时纠错", "AI Form Check"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                         Text(
-                            "摄像头识别姿态，自动计数",
+                            t("摄像头识别姿态，自动计数", "Camera pose detection, auto counting"),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -157,9 +158,9 @@ fun HomeScreen(
                             tint = MaterialTheme.colorScheme.primary,
                         )
                         Spacer(Modifier.height(6.dp))
-                        Text("户外跑步", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        Text(t("户外跑步", "Outdoor Run"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                         Text(
-                            "GPS 记录距离与配速",
+                            t("GPS 记录距离与配速", "GPS distance & pace"),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -170,7 +171,7 @@ fun HomeScreen(
 
         item {
             Text(
-                "训练计划",
+                t("训练计划", "Training Plans"),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 8.dp),
             )
@@ -190,7 +191,7 @@ fun HomeScreen(
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            "${plan.level} · ${plan.items.size} 个动作 · ${Plans.totalSets(plan)} 组 · 约 ${Plans.estimateSec(plan) / 60} 分钟",
+                            t("${plan.level} · ${plan.items.size} 个动作 · ${Plans.totalSets(plan)} 组 · 约 ${Plans.estimateSec(plan) / 60} 分钟", "${plan.level} · ${plan.items.size} moves · ${Plans.totalSets(plan)} sets · ~${Plans.estimateSec(plan) / 60} min"),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -205,7 +206,7 @@ fun HomeScreen(
         if (records.isNotEmpty()) {
             item {
                 Text(
-                    "最近记录",
+                    t("最近记录", "Recent Activity"),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(top = 8.dp),
                 )
@@ -219,13 +220,13 @@ fun HomeScreen(
                         Column(Modifier.weight(1f)) {
                             Text(r.planName, style = MaterialTheme.typography.bodyMedium)
                             Text(
-                                "${r.date} · ${r.doneSets}/${r.totalSets} 组 · ${formatDuration(r.durationSec)}",
+                                t("${r.date} · ${r.doneSets}/${r.totalSets} 组 · ${formatDuration(r.durationSec)}", "${r.date} · ${r.doneSets}/${r.totalSets} sets · ${formatDuration(r.durationSec)}"),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Text(
-                            if (r.date == LocalDate.now().toString()) "今天" else r.date.substring(5),
+                            if (r.date == LocalDate.now().toString()) t("今天", "Today") else r.date.substring(5),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -258,9 +259,9 @@ private fun UpdateBanner(
                 )
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("发现新版本 v${state.info.version}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(t("发现新版本 v${state.info.version}", "New version v${state.info.version}"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                     Text(
-                        "点击下载更新（约 ${state.info.sizeBytes / 1048576}MB）",
+                        t("点击下载更新（约 ${state.info.sizeBytes / 1048576}MB）", "Tap to download (~${state.info.sizeBytes / 1048576}MB)"),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -270,7 +271,7 @@ private fun UpdateBanner(
 
         is UpdateState.Downloading -> Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text("正在下载新版本… ${state.progress}%", style = MaterialTheme.typography.titleSmall)
+                Text(t("正在下载新版本… ${state.progress}%", "Downloading… ${state.progress}%"), style = MaterialTheme.typography.titleSmall)
                 Spacer(Modifier.height(6.dp))
                 LinearProgressIndicator(
                     progress = { state.progress / 100f },
@@ -281,26 +282,26 @@ private fun UpdateBanner(
 
         is UpdateState.Ready -> Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text("v${state.info.version} 下载完成", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(t("v${state.info.version} 下载完成", "v${state.info.version} downloaded"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Text(
-                    "如弹出权限申请，请允许本应用安装未知应用后重试",
+                    t("如弹出权限申请，请允许本应用安装未知应用后重试", "If prompted, allow installing unknown apps, then tap Install again"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(8.dp))
                 Button(onClick = { onInstall(state.file, state.info) }, modifier = Modifier.fillMaxWidth()) {
-                    Text("立即安装")
+                    Text(t("立即安装", "Install Now"))
                 }
             }
         }
 
         is UpdateState.Failed -> Card(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
-                Text("下载失败", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.error)
+                Text(t("下载失败", "Download failed"), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.error)
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { onRetry(state.info) }) { Text("重试") }
-                    TextButton(onClick = { onBrowser(state.info) }) { Text("用浏览器下载") }
+                    OutlinedButton(onClick = { onRetry(state.info) }) { Text(t("重试", "Retry")) }
+                    TextButton(onClick = { onBrowser(state.info) }) { Text(t("用浏览器下载", "Open in Browser")) }
                 }
             }
         }

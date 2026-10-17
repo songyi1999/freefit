@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.freefit.app.data.db.AppDatabase
 import com.freefit.app.data.db.SessionEntity
+import com.freefit.app.t
 import kotlinx.coroutines.launch
 
 @Composable
@@ -49,16 +50,16 @@ fun HistoryScreen(onOpenRunDetail: (Long) -> Unit = {}) {
     deleteTarget?.let { target ->
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
-            title = { Text("删除这条记录？") },
+            title = { Text(t("删除这条记录？", "Delete this record?")) },
             text = { Text("${target.date} · ${target.planName}") },
             confirmButton = {
                 TextButton(onClick = {
                     scope.launch { dao.delete(target.id) }
                     deleteTarget = null
-                }) { Text("删除") }
+                }) { Text(t("删除", "Delete")) }
             },
             dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text("取消") }
+                TextButton(onClick = { deleteTarget = null }) { Text(t("取消", "Cancel")) }
             },
         )
     }
@@ -75,10 +76,10 @@ fun HistoryScreen(onOpenRunDetail: (Long) -> Unit = {}) {
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("训练统计", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(t("训练统计", "Your Stats"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "累计 $totalTimes 次 · ${formatDuration(totalSec)} · 连续 $streak 天",
+                        t("累计 $totalTimes 次 · ${formatDuration(totalSec)} · 连续 $streak 天", "$totalTimes workouts · ${formatDuration(totalSec)} · $streak-day streak"),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -89,7 +90,7 @@ fun HistoryScreen(onOpenRunDetail: (Long) -> Unit = {}) {
         if (records.isEmpty()) {
             item {
                 Text(
-                    "还没有训练记录，去首页开始第一次训练吧 💪",
+                    t("还没有训练记录，去首页开始第一次训练吧 💪", "No workouts yet — start your first one from Home 💪"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 32.dp),
@@ -112,9 +113,9 @@ fun HistoryScreen(onOpenRunDetail: (Long) -> Unit = {}) {
                         Text(
                             if (r.distanceMeters > 0) {
                                 val paceSec = if (r.distanceMeters > 0) r.durationSec / (r.distanceMeters / 1000f) else 0f
-                                "${r.date} · ${"%.2f".format(r.distanceMeters / 1000f)} 公里 · 配速 ${paceSec.toInt() / 60}'${"%02d".format(paceSec.toInt() % 60)}\" · ${formatDuration(r.durationSec)}"
+                                t("${r.date} · ${"%.2f".format(r.distanceMeters / 1000f)} 公里 · 配速 ${paceSec.toInt() / 60}'${"%02d".format(paceSec.toInt() % 60)}\" · ${formatDuration(r.durationSec)}", "${r.date} · ${"%.2f".format(r.distanceMeters / 1000f)} km · ${paceSec.toInt() / 60}'${"%02d".format(paceSec.toInt() % 60)}\"/km · ${formatDuration(r.durationSec)}")
                             } else {
-                                "${r.date} · 完成 ${r.doneSets}/${r.totalSets} 组 · ${formatDuration(r.durationSec)}"
+                                t("${r.date} · 完成 ${r.doneSets}/${r.totalSets} 组 · ${formatDuration(r.durationSec)}", "${r.date} · ${r.doneSets}/${r.totalSets} sets · ${formatDuration(r.durationSec)}")
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -16,6 +16,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.freefit.app.MainActivity
 import com.freefit.app.R
+import com.freefit.app.t
 import kotlin.math.roundToInt
 
 /** 前台服务：持续接收 GPS 定位并写入 RunTracker。 */
@@ -120,8 +121,8 @@ class RunService : Service() {
         val km = s.distanceM / 1000f
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_run)
-            .setContentTitle(if (s.paused) "跑步已暂停" else "FreeFit 正在记录跑步")
-            .setContentText(String.format("已跑 %.2f 公里", km))
+            .setContentTitle(if (s.paused) t("跑步已暂停", "Run paused") else t("FreeFit 正在记录跑步", "FreeFit is tracking your run"))
+            .setContentText(String.format(t("已跑 %.2f 公里", "%.2f km so far"), km))
             .setContentIntent(openApp)
             .setOnlyAlertOnce(true)
             .setOngoing(true)
@@ -136,7 +137,7 @@ class RunService : Service() {
     private fun createChannel() {
         if (Build.VERSION.SDK_INT >= 26) {
             val channel = NotificationChannel(
-                CHANNEL_ID, "跑步记录", NotificationManager.IMPORTANCE_LOW,
+                CHANNEL_ID, t("跑步记录", "Run Tracking"), NotificationManager.IMPORTANCE_LOW,
             )
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.createNotificationChannel(channel)

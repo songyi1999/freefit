@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.freefit.app.data.Exercise
 import com.freefit.app.fitness.TtsSpeaker
+import com.freefit.app.t
 import kotlin.math.acos
 import kotlin.math.sqrt
 
@@ -109,7 +110,7 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
         val side = pickSide(lms)
         if (side == null) {
             lastPoseGood = false
-            hint("请调整站位/手机角度，让全身入镜", now, 5000)
+            hint(t("请调整站位/手机角度，让全身入镜", "Adjust position so your full body is in view"), now, 5000)
             return
         }
         lastPoseGood = true
@@ -117,7 +118,7 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
         val s = spec ?: run {
             if (!noSupportHintShown) {
                 noSupportHintShown = true
-                feedback = "该动作暂不支持自动计数，可对照骨架自查姿态"
+                feedback = t("该动作暂不支持自动计数，可对照骨架自查姿态", "Auto-count not supported for this move yet")
             }
             return
         }
@@ -126,7 +127,7 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
             val line = angleDeg(lms[side.shoulder], lms[side.hip], lms[side.ankle])
             if (line < 150f && now - lastLineWarnAt > 6000) {
                 lastLineWarnAt = now
-                speakFeedback("保持头、髋、脚踝一条直线", now)
+                speakFeedback(t("保持头、髋、脚踝一条直线", "Keep head, hips and ankles in a line"), now)
             }
         }
 
@@ -152,10 +153,10 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
                 if (s.reversed) extremeAngle < warn else extremeAngle > warn
             } == true
             if (shallow) {
-                speakFeedback("幅度不够，再${if (s.reversed) "顶高一点" else "蹲低一点"}", now)
+                speakFeedback(if (s.reversed) t("幅度不够，再顶高一点", "Hips higher for a full rep") else t("幅度不够，再蹲低一点", "Go deeper for a full rep"), now)
             } else {
                 repCount++
-                feedback = "✅ 第 $repCount 次"
+                feedback = t("✅ 第 $repCount 次", "✅ Rep $repCount")
                 tts?.speak("${repCount}")
             }
         }

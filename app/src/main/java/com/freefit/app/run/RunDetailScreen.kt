@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.freefit.app.data.db.AppDatabase
 import com.freefit.app.data.db.SessionEntity
+import com.freefit.app.t
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,7 +55,7 @@ fun RunDetailScreen(id: Long, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("跑步详情") },
+                title = { Text(t("跑步详情", "Run Details")) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
@@ -69,7 +70,7 @@ fun RunDetailScreen(id: Long, onBack: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxSize().padding(padding),
-            ) { Text("加载中…") }
+            ) { Text(t("加载中…", "Loading…")) }
             return@Scaffold
         }
 
@@ -104,13 +105,13 @@ fun RunDetailScreen(id: Long, onBack: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Text("公里", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(t("公里", "km"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Spacer(Modifier.height(20.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(36.dp)) {
-                DetailStat(formatDuration(r.durationSec), "总时长")
-                DetailStat(paceText, "平均配速")
-                DetailStat(r.date.substring(5), "日期")
+                DetailStat(formatDuration(r.durationSec), t("总时长", "Duration"))
+                DetailStat(paceText, t("平均配速", "Avg Pace"))
+                DetailStat(r.date.substring(5), t("日期", "Date"))
             }
 
             Spacer(Modifier.height(28.dp))
@@ -124,7 +125,7 @@ fun RunDetailScreen(id: Long, onBack: () -> Unit) {
             ) {
                 Icon(Icons.Filled.Share, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("分享战绩到朋友圈")
+                Text(t("分享战绩到朋友圈", "Share to Moments"))
             }
             Spacer(Modifier.height(24.dp))
         }

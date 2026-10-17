@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.freefit.app.data.db.AppDatabase
 import com.freefit.app.data.db.SessionEntity
+import com.freefit.app.t
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -119,10 +120,10 @@ fun RunScreen() {
                 modifier = Modifier.height(72.dp).fillMaxWidth(),
             )
             Spacer(Modifier.height(12.dp))
-            Text("户外跑步", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(t("户外跑步", "Outdoor Run"), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
             Text(
-                "GPS 记录轨迹、距离与配速，数据只保存在本机",
+                t("GPS 记录轨迹、距离与配速，数据只保存在本机", "GPS track, distance & pace — data stays on your phone"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -132,7 +133,7 @@ fun RunScreen() {
                     if (locationGranted) RunService.start(context) else requestPermissions()
                 },
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("开始跑步") }
+            ) { Text(t("开始跑步", "Start Run")) }
         }
         return
     }
@@ -155,11 +156,11 @@ fun RunScreen() {
             style = MaterialTheme.typography.displayLarge,
             fontWeight = FontWeight.Bold,
         )
-        Text("用时", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(t("用时", "Time"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
-            Stat(String.format(Locale.US, "%.2f", km), "公里")
-            Stat(paceText, "配速/公里")
+            Stat(String.format(Locale.US, "%.2f", km), t("公里", "km"))
+            Stat(paceText, t("配速/公里", "pace/km"))
         }
         Spacer(Modifier.height(16.dp))
         if (state.points.size > 1) {
@@ -181,7 +182,7 @@ fun RunScreen() {
             ) {
                 Icon(Icons.Filled.PlayArrow, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("继续")
+                Text(t("继续", "Resume"))
             }
         } else {
             FilledTonalButton(
@@ -190,7 +191,7 @@ fun RunScreen() {
             ) {
                 Icon(Icons.Filled.Pause, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("暂停")
+                Text(t("暂停", "Pause"))
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -205,7 +206,7 @@ fun RunScreen() {
                             SessionEntity(
                                 date = LocalDate.now().toString(),
                                 startTime = final.startedAt,
-                                planName = "户外跑步",
+                                planName = t("户外跑步", "Outdoor Run"),
                                 durationSec = (final.elapsedMs() / 1000).toInt(),
                                 doneSets = 0,
                                 totalSets = 0,
@@ -220,7 +221,7 @@ fun RunScreen() {
         ) {
             Icon(Icons.Filled.Stop, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("结束并保存")
+            Text(t("结束并保存", "Finish & Save"))
         }
     }
 }

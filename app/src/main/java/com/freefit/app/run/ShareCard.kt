@@ -11,6 +11,7 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import androidx.core.content.FileProvider
 import com.freefit.app.data.db.SessionEntity
+import com.freefit.app.t
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
@@ -61,11 +62,11 @@ object ShareCard {
         val km = r.distanceMeters / 1000f
 
         // 头部
-        text("FREEFIT · 户外跑步", 46f, GRAY, false, w / 2f, 150f)
+        text(t("FREEFIT · 户外跑步", "FREEFIT · Outdoor Run"), 46f, GRAY, false, w / 2f, 150f)
 
         // 大距离数字
         text(String.format(Locale.US, "%.2f", km), 210f, WHITE, true, w / 2f, 400f)
-        text("公里", 52f, GRAY, false, w / 2f, 480f)
+        text(t("公里", "KM"), 52f, GRAY, false, w / 2f, 480f)
 
         // 时长 / 配速
         val durationSec = r.durationSec
@@ -76,9 +77,9 @@ object ShareCard {
         val durationText = String.format(
             Locale.US, "%d:%02d:%02d", durationSec / 3600, (durationSec % 3600) / 60, durationSec % 60,
         )
-        text("用时", 42f, GRAY, false, w * 0.30f, 600f)
+        text(t("用时", "TIME"), 42f, GRAY, false, w * 0.30f, 600f)
         text(durationText, 68f, WHITE, true, w * 0.30f, 680f)
-        text("平均配速", 42f, GRAY, false, w * 0.70f, 600f)
+        text(t("平均配速", "PACE"), 42f, GRAY, false, w * 0.70f, 600f)
         text(paceText, 68f, WHITE, true, w * 0.70f, 680f)
 
         // 轨迹区域
@@ -125,12 +126,12 @@ object ShareCard {
             p.color = 0xFF0A1020.toInt()
             c.drawCircle(x(pts.last()), y(pts.last()), 10f, p)
         } else {
-            text("本次未记录到轨迹", 48f, GRAY, false, w / 2f, (areaTop + areaBottom) / 2)
+            text(t("本次未记录到轨迹", "No route recorded"), 48f, GRAY, false, w / 2f, (areaTop + areaBottom) / 2)
         }
 
         // 底部
         text(r.date, 44f, GRAY, false, w / 2f, 1440f)
-        text("自律给我自由", 52f, GREEN, true, w / 2f, 1520f)
+        text(t("自律给你自由", "Self-discipline sets you free"), 52f, GREEN, true, w / 2f, 1520f)
 
         return bmp
     }
@@ -148,7 +149,7 @@ object ShareCard {
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(send, "分享跑步战绩"))
+        context.startActivity(Intent.createChooser(send, t("分享跑步战绩", "Share run")))
         return bitmap
     }
 }
