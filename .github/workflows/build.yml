@@ -23,7 +23,16 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build APKs
-        run: ./gradlew assembleDebug assembleRelease --stacktrace
+        run: |
+          ./gradlew assembleDebug assembleRelease --stacktrace 2>&1 | tee build-output.log
+          status=${PIPESTATUS[0]}
+          if [ $status -ne 0 ]; then
+            echo "## Build failed (last 80 lines)" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -80 build-output.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          exit $status
 
       - name: Rename APKs
         run: |
