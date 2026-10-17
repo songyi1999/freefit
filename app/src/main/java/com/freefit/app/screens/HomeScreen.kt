@@ -76,6 +76,21 @@ fun HomeScreen(
         }
     }
 
+    // 手动检查更新：入口在页面底部版本栏
+    var manualChecking by remember { mutableStateOf(false) }
+    var upToDate by remember { mutableStateOf(false) }
+    val manualCheck: () -> Unit = {
+        if (!manualChecking) {
+            manualChecking = true
+            upToDate = false
+            scope.launch {
+                val info = Updater.check(currentVersion)
+                manualChecking = false
+                if (info != null) updateState = UpdateState.Available(info) else upToDate = true
+            }
+        }
+    }
+
     val streak = remember(records) { streakDays(records.map { it.date }) }
     val totalMin = remember(records) { records.sumOf { it.durationSec } / 60 }
 
@@ -230,6 +245,37 @@ fun HomeScreen(
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
+                    }
+                }
+            }
+        }
+
+        // 版本栏：当前版本 + 手动检查更新
+        item {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+            ) {
+                Text(
+                    "FreeFit v$currentVersion",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                when {
+                    manualChecking -> Text(
+                        t("正在检查更新…", "Checking for updates…"),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    upToDate -> Text(
+                        t("✓ 已是最新版本", "✓ Up to date"),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    else -> androidx.compose.material3.TextButton(onClick = manualCheck) {
+                        Text(t("检查更新", "Check for Updates"))
                     }
                 }
             }
