@@ -27,7 +27,7 @@ jobs:
           ./gradlew assembleDebug assembleRelease --stacktrace 2>&1 | tee build-output.log
           status=${PIPESTATUS[0]}
           if [ $status -ne 0 ]; then
-            awk '/What went wrong:/{f=1} f{print; c++; if(c>7) exit}' build-output.log > errs.txt
+            awk '/What went wrong:/{f=1} f{print; c++; if(c>18) exit}' build-output.log > errs.txt
             grep -A 4 "^e: " build-output.log | head -8 >> errs.txt || true
             grep -m1 -A 3 "Caused by" build-output.log >> errs.txt || true
             if [ ! -s errs.txt ]; then tail -10 build-output.log > errs.txt; fi
