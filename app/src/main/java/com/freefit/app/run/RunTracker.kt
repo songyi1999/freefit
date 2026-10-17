@@ -1,5 +1,6 @@
 package com.freefit.app.run
 
+import android.location.Location
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.atan2
@@ -12,6 +13,13 @@ import kotlin.math.sqrt
  * 不依赖 Google Play Services，直接用系统 LocationManager，国内手机通用。
  */
 object RunTracker {
+
+    /** 上一个被接受的定位时间戳（毫秒），用于真实速度过滤 */
+    private var lastFixAt = 0L
+
+    /** 暂停恢复后丢弃第一段位移（暂停期间的位置变化不计入距离） */
+    private var skipNextSegment = false
+
 
     data class RunState(
         val running: Boolean = false,
@@ -36,6 +44,8 @@ object RunTracker {
 
     fun start() {
         val now = System.currentTimeMillis()
+        lastFixAt = 0L
+        skipNextSegment = false
         _state.value = RunState(running = true, paused = false, startedAt = now, lastResumeAt = now)
     }
 
@@ -49,26 +59,48 @@ object RunTracker {
     fun resume() {
         val s = _state.value
         if (s.running && s.paused) {
+            skipNextSegment = true
             _state.value = s.copy(paused = false, lastResumeAt = System.currentTimeMillis())
         }
     }
 
-    /** 服务收到定位回调时写入；带精度与跳点过滤 */
-    fun onLocation(lat: Double, lng: Double, accuracy: Float) {
+    /**
+     * 服务收到定位回调时写入。过滤规则：
+     * - 精度差于 50m 的点丢弃（口袋里/楼旁常见 40-60m，不能全扔）
+     * - 速度按【真实时间差】计算（>8m/s 视为漂移），不能用固定间隔，
+     *   否则"错过几个点后补来的正常位移"会被误判成漂移，距离永久冻结
+     * - 位移 <0.8m 视为原地不动
+     */
+    fun onLocation(location: Location) {
         val s = _state.value
-        if (!s.running || s.paused || accuracy > 30f) return
+        if (!s.running || s.paused) return
+        if (location.accuracy > 50f) return
+
+        val newPoint = location.latitude to location.longitude
         val last = s.points.lastOrNull()
-        var distance = s.distanceM
-        if (last != null) {
-            val d = haversineM(last.first, last.second, lat, lng)
-            val dt = 2.0 // 采样间隔约 2s
-            if (d / dt > 9.0) return // 明显漂移（>9m/s）丢弃
-            if (d < 1.0) return // 太近不累计
-            distance += d.toFloat()
+        if (last == null) {
+            lastFixAt = location.time
+            _state.value = s.copy(points = listOf(newPoint))
+            return
         }
+
+        // 暂停恢复后的第一个点只作新锚点，不累计暂停期间的位移
+        if (skipNextSegment) {
+            skipNextSegment = false
+            lastFixAt = location.time
+            _state.value = s.copy(points = s.points + newPoint)
+            return
+        }
+
+        val dtSec = ((location.time - lastFixAt) / 1000.0).coerceAtLeast(0.5)
+        val d = haversineM(last.first, last.second, newPoint.first, newPoint.second)
+        if (d / dtSec > 8.0) return
+        if (d < 0.8) return
+
+        lastFixAt = location.time
         _state.value = s.copy(
-            distanceM = distance,
-            points = (s.points + (lat to lng)).takeLast(20000),
+            distanceM = s.distanceM + d.toFloat(),
+            points = (s.points + newPoint).takeLast(20000),
         )
     }
 

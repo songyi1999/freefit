@@ -47,7 +47,7 @@ class RunService : Service() {
 
     private var locationManager: LocationManager? = null
     private val listener = LocationListener { location: Location ->
-        RunTracker.onLocation(location.latitude, location.longitude, location.accuracy)
+        RunTracker.onLocation(location)
         updateNotification()
     }
     private var listening = false
@@ -98,7 +98,7 @@ class RunService : Service() {
             else -> return
         }
         try {
-            lm.requestLocationUpdates(provider, 2000L, 1f, listener)
+            lm.requestLocationUpdates(provider, 1000L, 0f, listener)
             listening = true
         } catch (_: SecurityException) {
             // 无定位权限时保持空转，界面层已做权限引导
