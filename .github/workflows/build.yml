@@ -27,10 +27,12 @@ jobs:
           ./gradlew assembleDebug assembleRelease --stacktrace 2>&1 | tee build-output.log
           status=${PIPESTATUS[0]}
           if [ $status -ne 0 ]; then
-            echo "## Build failed (last 80 lines)" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -80 build-output.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            grep -E "^e: |error: |FAILURE|What went wrong|Caused by|\* " build-output.log | head -10 > errs.txt || true
+            if [ ! -s errs.txt ]; then tail -10 build-output.log > errs.txt; fi
+            while IFS= read -r line; do
+              msg=$(echo "$line" | cut -c1-220)
+              if [ -n "$msg" ]; then echo "::error::${msg}"; fi
+            done < errs.txt
           fi
           exit $status
 
