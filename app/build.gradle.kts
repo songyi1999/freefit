@@ -13,8 +13,8 @@ android {
         applicationId = "com.freefit.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.5.1"
+        versionCode = 8
+        versionName = "0.6.0"
     }
 
     signingConfigs {
@@ -64,5 +64,6 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.mediapipe.tasks.vision)
+    implementation(libs.osmdroid.android)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

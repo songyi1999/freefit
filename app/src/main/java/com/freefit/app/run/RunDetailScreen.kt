@@ -89,14 +89,20 @@ fun RunDetailScreen(id: Long, onBack: () -> Unit) {
                 .padding(16.dp),
         ) {
             Card(Modifier.fillMaxWidth()) {
-                RouteCanvas(
+                TrackMapView(
                     points = ShareCard.parseRoute(r.routeJson),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(340.dp)
-                        .padding(14.dp),
+                        .padding(6.dp),
                 )
             }
+            Text(
+                t("底图 © 高德地图 · 双指缩放查看", "Tiles © Amap · pinch to zoom"),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
 
             Spacer(Modifier.height(20.dp))
             Text(

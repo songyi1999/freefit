@@ -165,14 +165,19 @@ fun RunScreen() {
         Spacer(Modifier.height(16.dp))
         if (state.points.size > 1) {
             Card(Modifier.fillMaxWidth()) {
-                RouteCanvas(
+                TrackMapView(
                     points = state.points,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(170.dp)
-                        .padding(10.dp),
+                        .height(200.dp)
+                        .padding(6.dp),
                 )
             }
+            Text(
+                t("底图 © 高德地图", "Tiles © Amap"),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         Spacer(Modifier.weight(1f))
         if (state.paused) {

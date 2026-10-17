@@ -8,6 +8,11 @@ class FreeFitApp : Application() {
     override fun onCreate() {
         super.onCreate()
         L10n.english = isEnglish(resources.configuration)
+        // osmdroid：自定义 UA 与缓存目录（放应用缓存，无需存储权限）
+        val osm = org.osmdroid.config.Configuration.getInstance()
+        osm.userAgentValue = packageName
+        osm.osmdroidBasePath = java.io.File(cacheDir, "osmdroid")
+        osm.osmdroidTileCache = java.io.File(osm.osmdroidBasePath, "tiles")
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
