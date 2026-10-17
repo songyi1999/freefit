@@ -69,15 +69,16 @@ fun AppRoot() {
             if (showBottomBar) {
                 NavigationBar {
                     tabs.forEach { tab ->
-                        NavigationBarItem(
-                            selected = currentRoute == tab.route,
-                            onClick = {
+                    NavigationBarItem(
+                        selected = currentRoute == tab.route,
+                        onClick = {
+                            if (currentRoute != tab.route) {
                                 nav.navigate(tab.route) {
-                                    popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                                    popUpTo(nav.graph.findStartDestination().id) { inclusive = false }
                                     launchSingleTop = true
-                                    restoreState = true
                                 }
-                            },
+                            }
+                        },
                             icon = { Icon(tab.icon, contentDescription = tab.label) },
                             label = { Text(tab.label) },
                         )
