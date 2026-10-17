@@ -149,7 +149,7 @@ fun RunScreen() {
             .fillMaxSize()
             .padding(24.dp),
     ) {
-        Spacer(Modifier.weight(0.4f))
+        Spacer(Modifier.weight(0.3f))
         Text(
             formatElapsed(elapsed),
             style = MaterialTheme.typography.displayLarge,
@@ -160,7 +160,18 @@ fun RunScreen() {
         Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
             Stat(String.format(Locale.US, "%.2f", km), "公里")
             Stat(paceText, "配速/公里")
-            Stat("${state.points.size}", "轨迹点")
+        }
+        Spacer(Modifier.height(16.dp))
+        if (state.points.size > 1) {
+            Card(Modifier.fillMaxWidth()) {
+                RouteCanvas(
+                    points = state.points,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(170.dp)
+                        .padding(10.dp),
+                )
+            }
         }
         Spacer(Modifier.weight(1f))
         if (state.paused) {
@@ -225,37 +236,3 @@ private fun Stat(value: String, label: String) {
 private fun formatElapsed(sec: Long): String =
     String.format(Locale.US, "%d:%02d:%02d", sec / 3600, (sec % 3600) / 60, sec % 60)
 
-/** 轨迹缩略图：经纬度归一化后画折线 */
-@Composable
-fun RouteMiniMap(points: List<Pair<Double, Double>>, modifier: Modifier = Modifier) {
-    Card(modifier = modifier) {
-        Canvas(
-            Modifier
-                .fillMaxWidth()
-                .height(140.dp)
-                .padding(12.dp)
-        ) {
-            if (points.size < 2) return@Canvas
-            val lats = points.map { it.first }
-            val lngs = points.map { it.second }
-            val minLat = lats.min(); val maxLat = lats.max()
-            val minLng = lngs.min(); val maxLng = lngs.max()
-            val latSpan = (maxLat - minLat).coerceAtLeast(1e-6)
-            val lngSpan = (maxLng - minLng).coerceAtLeast(1e-6)
-            // 保持经纬度纵横比例
-            val scale = minOf(size.width / lngSpan.toFloat(), size.height / latSpan.toFloat())
-            fun map(p: Pair<Double, Double>): Offset {
-                val x = size.width / 2 + ((p.second - (minLng + maxLng) / 2)).toFloat() * scale
-                val y = size.height / 2 - ((p.first - (minLat + maxLat) / 2)).toFloat() * scale
-                return Offset(x, y)
-            }
-            val path = Path()
-            points.forEachIndexed { i, p ->
-                if (i == 0) path.moveTo(map(p).x, map(p).y) else path.lineTo(map(p).x, map(p).y)
-            }
-            drawPath(path, Color(0xFF4ADE80), style = Stroke(width = 4f, cap = StrokeCap.Round))
-            drawCircle(Color.White, radius = 5f, center = map(points.first()))
-            drawCircle(Color(0xFF38BDF8), radius = 6f, center = map(points.last()))
-        }
-    }
-}

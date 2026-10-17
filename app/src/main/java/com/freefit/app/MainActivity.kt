@@ -100,7 +100,11 @@ fun FreeFitApp() {
                 RunScreen()
             }
             composable("history") {
-                HistoryScreen()
+                HistoryScreen(onOpenRunDetail = { nav.navigate("rundetail/$it") })
+            }
+            composable("rundetail/{id}") { entry ->
+                val id = entry.arguments?.getString("id")?.toLongOrNull() ?: 0L
+                com.freefit.app.run.RunDetailScreen(id = id, onBack = { nav.popBackStack() })
             }
             composable("exercise/{id}") { entry ->
                 val ex = ExerciseLibrary.byId(entry.arguments?.getString("id") ?: "squat")
