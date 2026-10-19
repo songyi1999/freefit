@@ -27,6 +27,13 @@ sealed class UpdateState {
     data class Failed(val info: UpdateInfo) : UpdateState()
 }
 
+/** 手动检查结果：区分"无更新"与"网络失败"，避免误报 */
+sealed class CheckResult {
+    data class Found(val info: UpdateInfo) : CheckResult()
+    data object UpToDate : CheckResult()
+    data object Failed : CheckResult()
+}
+
 /**
  * 应用内自更新（OTA）：检查 GitHub 最新 Release → 下载 APK → 拉起系统安装器。
  * 全程零服务器：版本源是本仓库 Releases 的公开 API。
@@ -36,17 +43,17 @@ object Updater {
     private const val RELEASE_API = "https://api.github.com/repos/songyi1999/freefit/releases/latest"
     private const val ASSET_NAME = "FreeFit-release.apk"
 
-    /** 检查更新；无更新或网络失败返回 null（静默降级） */
-    suspend fun check(currentVersion: String): UpdateInfo? = withContext(Dispatchers.IO) {
+    /** 检查更新；网络失败与"无更新"分开返回 */
+    suspend fun check(currentVersion: String): CheckResult = withContext(Dispatchers.IO) {
         runCatching {
             val conn = URL(RELEASE_API).openConnection() as HttpURLConnection
-            conn.connectTimeout = 10_000
-            conn.readTimeout = 15_000
+            conn.connectTimeout = 8_000
+            conn.readTimeout = 10_000
             conn.setRequestProperty("User-Agent", "FreeFit-App")
-            if (conn.responseCode != 200) return@runCatching null
+            if (conn.responseCode != 200) return@runCatching CheckResult.Failed
             val root = JSONObject(conn.inputStream.bufferedReader().readText())
             val tag = root.optString("tag_name").trimStart('v', 'V')
-            if (!isNewer(tag, currentVersion)) return@runCatching null
+            if (!isNewer(tag, currentVersion)) return@runCatching CheckResult.UpToDate
             var url: String? = null
             var size = 0L
             val assets = root.optJSONArray("assets")
@@ -60,8 +67,9 @@ object Updater {
                     }
                 }
             }
-            url?.let { UpdateInfo(tag, it, root.optString("body"), size) }
-        }.getOrNull()
+            url?.let { CheckResult.Found(UpdateInfo(tag, it, root.optString("body"), size)) }
+                ?: CheckResult.Failed
+        }.getOrDefault(CheckResult.Failed)
     }
 
     /** 下载 APK 到应用私有目录；进度 0..100；失败返回 null */

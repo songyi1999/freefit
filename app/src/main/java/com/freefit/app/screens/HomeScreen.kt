@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.freefit.app.data.Plans
 import com.freefit.app.data.db.AppDatabase
+import com.freefit.app.update.CheckResult
 import com.freefit.app.update.UpdateInfo
 import com.freefit.app.update.UpdateState
 import com.freefit.app.update.Updater
@@ -72,8 +73,10 @@ fun HomeScreen(
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: ""
     }
     LaunchedEffect(Unit) {
-        Updater.check(currentVersion)?.let { updateState = UpdateState.Available(it) }
+        val r = Updater.check(currentVersion)
+        if (r is CheckResult.Found) updateState = UpdateState.Available(r.info)
     }
+    var checkDialog by remember { mutableStateOf<String?>(null) }
     val startDownload: (UpdateInfo) -> Unit = { info ->
         updateState = UpdateState.Downloading(0)
         scope.launch {
@@ -90,11 +93,36 @@ fun HomeScreen(
             manualChecking = true
             upToDate = false
             scope.launch {
-                val info = Updater.check(currentVersion)
+                when (val r = Updater.check(currentVersion)) {
+                    is CheckResult.Found -> startDownload(r.info) // 直接开下，横幅立即显示进度
+                    CheckResult.UpToDate -> {
+                        upToDate = true
+                        checkDialog = t(
+                            "✓ 已是最新版本 v$currentVersion",
+                            "✓ You're on the latest version v$currentVersion",
+                        )
+                    }
+                    CheckResult.Failed -> {
+                        checkDialog = t(
+                            "检查失败：无法访问 GitHub。\n请切换网络（如换 WiFi）后重试，或点「用浏览器下载」手动更新。",
+                            "Check failed: cannot reach GitHub.\nTry another network (e.g. WiFi) or download manually via browser.",
+                        )
+                    }
+                }
                 manualChecking = false
-                if (info != null) updateState = UpdateState.Available(info) else upToDate = true
             }
         }
+    }
+
+    checkDialog?.let { msg ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { checkDialog = null },
+            title = { Text(t("检查更新", "Check for Updates")) },
+            text = { Text(msg) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { checkDialog = null }) { Text(t("知道了", "OK")) }
+            },
+        )
     }
 
     val streak = remember(records) { streakDays(records.map { it.date }) }
