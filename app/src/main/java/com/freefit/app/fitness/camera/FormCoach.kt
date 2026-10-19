@@ -62,7 +62,7 @@ private class Side(val shoulder: Int, val elbow: Int, val wrist: Int, val hip: I
 private val SIDE_L = Side(Lm.SHOULDER_L, Lm.ELBOW_L, Lm.WRIST_L, Lm.HIP_L, Lm.KNEE_L, Lm.ANKLE_L)
 private val SIDE_R = Side(Lm.SHOULDER_R, Lm.ELBOW_R, Lm.WRIST_R, Lm.HIP_R, Lm.KNEE_R, Lm.ANKLE_R)
 
-private enum class CountJoint { KNEE, ELBOW, HIP_SHOULDER_KNEE, SHOULDER_HIP_WRIST }
+private enum class CountJoint { KNEE, ELBOW, HIP_SHOULDER_KNEE, HIP_SHOULDER_WRIST }
 
 private class Spec(
     val joint: CountJoint,
@@ -95,7 +95,7 @@ private val SPECS = mapOf(
     "crunch" to Spec(CountJoint.HIP_SHOULDER_KNEE, false, contractAngle = 88f, openAngle = 98f, depthWarn = 85f, bodyLineCheck = false),
     "dbrdl" to Spec(CountJoint.HIP_SHOULDER_KNEE, false, contractAngle = 135f, openAngle = 160f, depthWarn = null, bodyLineCheck = false),
     // 开合跳：肩-髋-腕夹角（垂手~15-40，举顶~150）
-    "jumpingjack" to Spec(CountJoint.SHOULDER_HIP_WRIST, true, contractAngle = 50f, openAngle = 135f, depthWarn = null, bodyLineCheck = false),
+    "jumpingjack" to Spec(CountJoint.HIP_SHOULDER_WRIST, true, contractAngle = 50f, openAngle = 135f, depthWarn = null, bodyLineCheck = false),
 )
 
 /**
@@ -149,7 +149,13 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
             CountJoint.KNEE -> angleDeg(lms[side.hip], lms[side.knee], lms[side.ankle])
             CountJoint.ELBOW -> angleDeg(lms[side.shoulder], lms[side.elbow], lms[side.wrist])
             CountJoint.HIP_SHOULDER_KNEE -> angleDeg(lms[side.shoulder], lms[side.hip], lms[side.knee])
-            CountJoint.SHOULDER_HIP_WRIST -> angleDeg(lms[side.shoulder], lms[side.hip], lms[side.wrist])
+            CountJoint.HIP_SHOULDER_WRIST -> {
+                // 肩关节处 髋-肩-腕 夹角；开合跳双臂对称，取双臂平均更抗遮挡抖动
+                val angles = listOf(SIDE_L, SIDE_R).map { sd ->
+                    angleDeg(lms[sd.hip], lms[sd.shoulder], lms[sd.wrist])
+                }
+                angles.average().toFloat()
+            }
         }
 
         val contracted = if (s.reversed) angle > s.openAngle else angle < s.contractAngle
