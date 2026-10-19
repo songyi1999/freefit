@@ -159,8 +159,13 @@ private fun CameraContent(ex: Exercise, onExit: () -> Unit) {
             }
             Column(Modifier.weight(1f)) {
                 Text(ex.name, style = MaterialTheme.typography.titleMedium)
+                val frontView = ex.id in setOf("jumpingjack", "highknees")
                 Text(
-                    t("AI 实时纠错 · 手机放在正侧方", "AI Form Check · phone at your side"),
+                    if (frontView) {
+                        t("AI 实时纠错 · 手机放在正前方", "AI Form Check · phone in front of you")
+                    } else {
+                        t("AI 实时纠错 · 手机放在正侧方", "AI Form Check · phone at your side")
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

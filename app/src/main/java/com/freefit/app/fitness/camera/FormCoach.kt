@@ -62,7 +62,7 @@ private class Side(val shoulder: Int, val elbow: Int, val wrist: Int, val hip: I
 private val SIDE_L = Side(Lm.SHOULDER_L, Lm.ELBOW_L, Lm.WRIST_L, Lm.HIP_L, Lm.KNEE_L, Lm.ANKLE_L)
 private val SIDE_R = Side(Lm.SHOULDER_R, Lm.ELBOW_R, Lm.WRIST_R, Lm.HIP_R, Lm.KNEE_R, Lm.ANKLE_R)
 
-private enum class CountJoint { KNEE, ELBOW, HIP_SHOULDER_KNEE }
+private enum class CountJoint { KNEE, ELBOW, HIP_SHOULDER_KNEE, SHOULDER_HIP_WRIST }
 
 private class Spec(
     val joint: CountJoint,
@@ -77,12 +77,25 @@ private class Spec(
 )
 
 private val SPECS = mapOf(
+    // 下肢：膝角（站立~175，蹲底~80-100）
     "squat" to Spec(CountJoint.KNEE, false, contractAngle = 110f, openAngle = 150f, depthWarn = 100f, bodyLineCheck = false),
     "dbsquat" to Spec(CountJoint.KNEE, false, contractAngle = 110f, openAngle = 150f, depthWarn = 100f, bodyLineCheck = false),
+    "lunge" to Spec(CountJoint.KNEE, false, contractAngle = 105f, openAngle = 155f, depthWarn = 100f, bodyLineCheck = false),
+    "highknees" to Spec(CountJoint.KNEE, false, contractAngle = 110f, openAngle = 160f, depthWarn = null, bodyLineCheck = false),
+    "mountainclimber" to Spec(CountJoint.KNEE, false, contractAngle = 130f, openAngle = 160f, depthWarn = null, bodyLineCheck = true),
+    // 上肢：肘角（伸直~170，弯~40-90）
     "pushup" to Spec(CountJoint.ELBOW, false, contractAngle = 95f, openAngle = 150f, depthWarn = 90f, bodyLineCheck = true),
     "plank" to Spec(CountJoint.ELBOW, false, contractAngle = 95f, openAngle = 150f, depthWarn = null, bodyLineCheck = true),
+    "dbrow" to Spec(CountJoint.ELBOW, false, contractAngle = 105f, openAngle = 160f, depthWarn = null, bodyLineCheck = false),
+    "dbpress" to Spec(CountJoint.ELBOW, false, contractAngle = 90f, openAngle = 160f, depthWarn = null, bodyLineCheck = false),
+    "dbshoulderpress" to Spec(CountJoint.ELBOW, false, contractAngle = 100f, openAngle = 160f, depthWarn = null, bodyLineCheck = false),
+    "dbcurl" to Spec(CountJoint.ELBOW, false, contractAngle = 70f, openAngle = 150f, depthWarn = null, bodyLineCheck = false),
+    // 髋角（肩-髋-膝）：臀桥/卷腹/硬拉
     "glutebridge" to Spec(CountJoint.HIP_SHOULDER_KNEE, true, contractAngle = 145f, openAngle = 168f, depthWarn = 160f, bodyLineCheck = false),
-    "lunge" to Spec(CountJoint.KNEE, false, contractAngle = 105f, openAngle = 155f, depthWarn = 100f, bodyLineCheck = false),
+    "crunch" to Spec(CountJoint.HIP_SHOULDER_KNEE, false, contractAngle = 88f, openAngle = 98f, depthWarn = 85f, bodyLineCheck = false),
+    "dbrdl" to Spec(CountJoint.HIP_SHOULDER_KNEE, false, contractAngle = 135f, openAngle = 160f, depthWarn = null, bodyLineCheck = false),
+    // 开合跳：肩-髋-腕夹角（垂手~15-40，举顶~150）
+    "jumpingjack" to Spec(CountJoint.SHOULDER_HIP_WRIST, true, contractAngle = 50f, openAngle = 135f, depthWarn = null, bodyLineCheck = false),
 )
 
 /**
@@ -119,7 +132,7 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
         val s = spec ?: run {
             if (!noSupportHintShown) {
                 noSupportHintShown = true
-                feedback = t("该动作暂不支持自动计数，可对照骨架自查姿态", "Auto-count not supported for this move yet")
+                feedback = t("保持类动作：对照骨架保持标准姿态即可", "Hold move: match the figure and keep good form")
             }
             return
         }
@@ -136,6 +149,7 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
             CountJoint.KNEE -> angleDeg(lms[side.hip], lms[side.knee], lms[side.ankle])
             CountJoint.ELBOW -> angleDeg(lms[side.shoulder], lms[side.elbow], lms[side.wrist])
             CountJoint.HIP_SHOULDER_KNEE -> angleDeg(lms[side.shoulder], lms[side.hip], lms[side.knee])
+            CountJoint.SHOULDER_HIP_WRIST -> angleDeg(lms[side.shoulder], lms[side.hip], lms[side.wrist])
         }
 
         val contracted = if (s.reversed) angle > s.openAngle else angle < s.contractAngle
