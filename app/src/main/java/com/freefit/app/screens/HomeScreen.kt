@@ -77,6 +77,7 @@ fun HomeScreen(
         if (r is CheckResult.Found) updateState = UpdateState.Available(r.info)
     }
     var checkDialog by remember { mutableStateOf<String?>(null) }
+    var foundDialog by remember { mutableStateOf<UpdateInfo?>(null) }
     val startDownload: (UpdateInfo) -> Unit = { info ->
         updateState = UpdateState.Downloading(0)
         scope.launch {
@@ -94,7 +95,7 @@ fun HomeScreen(
             upToDate = false
             scope.launch {
                 when (val r = Updater.check(currentVersion)) {
-                    is CheckResult.Found -> startDownload(r.info) // 直接开下，横幅立即显示进度
+                    is CheckResult.Found -> foundDialog = r.info // 弹窗确认，顶部+底部横幅同步展示
                     CheckResult.UpToDate -> {
                         upToDate = true
                         checkDialog = t(
@@ -121,6 +122,30 @@ fun HomeScreen(
             text = { Text(msg) },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = { checkDialog = null }) { Text(t("知道了", "OK")) }
+            },
+        )
+    }
+
+    // 手动检查发现新版本：弹窗确认，点「立即更新」直接开始下载
+    foundDialog?.let { info ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { foundDialog = null },
+            title = { Text(t("发现新版本 v${info.version}", "New version v${info.version} available")) },
+            text = {
+                Text(
+                    info.notes.take(400).ifBlank {
+                        t("更新包约 ${info.sizeBytes / 1048576}MB", "Download size ~${info.sizeBytes / 1048576}MB")
+                    }
+                )
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    foundDialog = null
+                    startDownload(info)
+                }) { Text(t("立即更新", "Update Now")) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { foundDialog = null }) { Text(t("稍后", "Later")) }
             },
         )
     }
@@ -288,6 +313,22 @@ fun HomeScreen(
                         )
                     }
                 }
+            }
+        }
+
+        // 底部同步显示更新状态（与顶部横幅相同）：用户在页面底部检查更新时无需回顶部
+        if (updateState !is UpdateState.Idle) {
+            item {
+                UpdateBanner(
+                    state = updateState,
+                    onDownload = startDownload,
+                    onInstall = { file, _ ->
+                        if (Updater.canInstall(context)) Updater.install(context, file)
+                        else Updater.requestInstallPermission(context)
+                    },
+                    onRetry = startDownload,
+                    onBrowser = { info -> Updater.openInBrowser(context, info) },
+                )
             }
         }
 
