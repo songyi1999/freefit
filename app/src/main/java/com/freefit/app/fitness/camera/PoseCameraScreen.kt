@@ -124,23 +124,10 @@ private fun CameraContent(ex: Exercise, onExit: () -> Unit) {
     }
 
     val landmarker = remember(ex.id) {
-        val base = BaseOptions.builder()
-            .setModelAssetPath("pose_landmarker_lite.task")
-            .setDelegate(Delegate.CPU)
-            .build()
-        val options = PoseLandmarker.PoseLandmarkerOptions.builder()
-            .setBaseOptions(base)
-            .setRunningMode(RunningMode.LIVE_STREAM)
-            .setNumPoses(1)
-            .setResultListener { result: PoseLandmarkerResult, _ ->
-                val lms = result.landmarks().firstOrNull().orEmpty()
-                val pts = lms.map { Pt(it.x(), it.y(), it.visibility().orElse(0.5f)) }
-                landmarks = pts
-                if (pts.isNotEmpty()) coach.onPose(pts)
-            }
-            .setErrorListener { /* 检测失败静默，下一帧重试 */ }
-            .build()
-        PoseLandmarker.createFromOptions(context, options)
+        createLandmarker(context) { pts ->
+            landmarks = pts
+            if (pts.isNotEmpty()) coach.onPose(pts)
+        }
     }
     DisposableEffect(ex.id) { onDispose { landmarker.close() } }
 
@@ -304,51 +291,5 @@ private fun CameraContent(ex: Exercise, onExit: () -> Unit) {
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
-    }
-}
-
-/**
- * 逐帧分析：YUV 转位图 → 旋转至竖直 → 降采样 → MediaPipe 流式检测。
- * 限频约 12fps，lite 模型 CPU 即可实时。
- */
-private class PoseAnalyzer(
-    private val landmarker: PoseLandmarker,
-    private val onFrameSize: (Int, Int) -> Unit,
-) : ImageAnalysis.Analyzer {
-
-    private var lastRunMs = 0L
-
-    override fun analyze(image: ImageProxy) {
-        try {
-            val now = System.currentTimeMillis()
-            if (now - lastRunMs < 80) {
-                image.close()
-                return
-            }
-            lastRunMs = now
-            val rotation = image.imageInfo.rotationDegrees
-            var bmp = image.toBitmap()
-            image.close()
-
-            if (rotation != 0) bmp = rotate(bmp, rotation)
-            bmp = downscale(bmp, 320)
-            onFrameSize(bmp.width, bmp.height)
-            val mpImage = BitmapImageBuilder(bmp).build()
-            landmarker.detectAsync(mpImage, System.nanoTime() / 1_000_000L)
-        } catch (_: Throwable) {
-            runCatching { image.close() }
-        }
-    }
-
-    private fun rotate(b: Bitmap, degrees: Int): Bitmap {
-        val m = Matrix().apply { postRotate(degrees.toFloat()) }
-        return Bitmap.createBitmap(b, 0, 0, b.width, b.height, m, true)
-    }
-
-    private fun downscale(b: Bitmap, maxSide: Int): Bitmap {
-        val m = max(b.width, b.height)
-        if (m <= maxSide) return b
-        val ratio = maxSide.toFloat() / m
-        return Bitmap.createScaledBitmap(b, (b.width * ratio).toInt().coerceAtLeast(1), (b.height * ratio).toInt().coerceAtLeast(1), true)
     }
 }

@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -124,6 +126,22 @@ fun PlayerScreen(plan: WorkoutPlan, onExit: () -> Unit) {
     }
 
     var showQuitDialog by remember { mutableStateOf(false) }
+
+    // 跟练中开启 AI 摄像头小窗（右下角悬浮）
+    var camOn by remember { mutableStateOf(false) }
+    var camGranted by remember {
+        mutableStateOf(
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context, android.Manifest.permission.CAMERA
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val camLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) {
+        camGranted = it
+        if (it) camOn = true
+    }
     if (showQuitDialog) {
         AlertDialog(
             onDismissRequest = { showQuitDialog = false },
@@ -161,6 +179,16 @@ fun PlayerScreen(plan: WorkoutPlan, onExit: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            IconButton(onClick = {
+                if (!camGranted) camLauncher.launch(android.Manifest.permission.CAMERA)
+                else camOn = !camOn
+            }) {
+                Icon(
+                    Icons.Filled.Videocam,
+                    contentDescription = "AI",
+                    tint = if (camOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Text(
                 "${s.stepIndex + 1}/${controller.totalSteps}",
                 style = MaterialTheme.typography.bodyMedium,
@@ -190,6 +218,17 @@ fun PlayerScreen(plan: WorkoutPlan, onExit: () -> Unit) {
                 PlayerPhase.DONE -> DoneContent(s, controller, onExit)
                 PlayerPhase.REST -> RestContent(step, s)
                 else -> ActiveContent(step, s)
+            }
+
+            // AI 摄像头小窗：跟随当前动作计数与纠错（静音，不干扰跟练语音）
+            if (camOn && camGranted && s.phase != PlayerPhase.DONE) {
+                com.freefit.app.fitness.camera.MiniPoseCam(
+                    ex = step.ex,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(10.dp)
+                        .size(132.dp),
+                )
             }
         }
 
