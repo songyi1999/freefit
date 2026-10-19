@@ -91,8 +91,8 @@ private val SPECS = mapOf(
     "dbshoulderpress" to Spec(CountJoint.ELBOW, false, contractAngle = 100f, openAngle = 160f, depthWarn = null, bodyLineCheck = false),
     "dbcurl" to Spec(CountJoint.ELBOW, false, contractAngle = 70f, openAngle = 150f, depthWarn = null, bodyLineCheck = false),
     // 髋角（肩-髋-膝）：臀桥/卷腹/硬拉
-    "glutebridge" to Spec(CountJoint.HIP_SHOULDER_KNEE, true, contractAngle = 145f, openAngle = 168f, depthWarn = 160f, bodyLineCheck = false),
-    "crunch" to Spec(CountJoint.HIP_SHOULDER_KNEE, false, contractAngle = 88f, openAngle = 98f, depthWarn = 85f, bodyLineCheck = false),
+    "glutebridge" to Spec(CountJoint.HIP_SHOULDER_KNEE, true, contractAngle = 140f, openAngle = 162f, depthWarn = 155f, bodyLineCheck = false),
+    "crunch" to Spec(CountJoint.HIP_SHOULDER_KNEE, false, contractAngle = 68f, openAngle = 85f, depthWarn = 72f, bodyLineCheck = false),
     "dbrdl" to Spec(CountJoint.HIP_SHOULDER_KNEE, false, contractAngle = 135f, openAngle = 160f, depthWarn = null, bodyLineCheck = false),
     // 开合跳：肩-髋-腕夹角（垂手~15-40，举顶~150）
     "jumpingjack" to Spec(CountJoint.HIP_SHOULDER_WRIST, true, contractAngle = 50f, openAngle = 135f, depthWarn = null, bodyLineCheck = false),
