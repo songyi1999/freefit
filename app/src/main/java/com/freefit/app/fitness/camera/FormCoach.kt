@@ -62,7 +62,7 @@ private class Side(val shoulder: Int, val elbow: Int, val wrist: Int, val hip: I
 private val SIDE_L = Side(Lm.SHOULDER_L, Lm.ELBOW_L, Lm.WRIST_L, Lm.HIP_L, Lm.KNEE_L, Lm.ANKLE_L)
 private val SIDE_R = Side(Lm.SHOULDER_R, Lm.ELBOW_R, Lm.WRIST_R, Lm.HIP_R, Lm.KNEE_R, Lm.ANKLE_R)
 
-private enum class CountJoint { KNEE, ELBOW, HIP_SHOULDER_KNEE, HIP_SHOULDER_WRIST }
+private enum class CountJoint { KNEE, ELBOW, HIP_SHOULDER_KNEE, HIP_SHOULDER_WRIST, HIP_DROP }
 
 private class Spec(
     val joint: CountJoint,
@@ -74,15 +74,17 @@ private class Spec(
     val depthWarn: Float?,
     /** 俯身类动作检查肩-髋-踝是否一条直线 */
     val bodyLineCheck: Boolean,
+    /** 双腿交替动作（高抬腿/登山跑）：左右腿独立追踪计步 */
+    val perLeg: Boolean = false,
 )
 
 private val SPECS = mapOf(
     // 下肢：膝角（站立~175，蹲底~80-100）
-    "squat" to Spec(CountJoint.KNEE, false, contractAngle = 110f, openAngle = 150f, depthWarn = 100f, bodyLineCheck = false),
-    "dbsquat" to Spec(CountJoint.KNEE, false, contractAngle = 110f, openAngle = 150f, depthWarn = 100f, bodyLineCheck = false),
+    "squat" to Spec(CountJoint.HIP_DROP, false, contractAngle = 0.35f, openAngle = 0.70f, depthWarn = 0.45f, bodyLineCheck = false),
+    "dbsquat" to Spec(CountJoint.HIP_DROP, false, contractAngle = 0.35f, openAngle = 0.70f, depthWarn = 0.45f, bodyLineCheck = false),
     "lunge" to Spec(CountJoint.KNEE, false, contractAngle = 105f, openAngle = 155f, depthWarn = 100f, bodyLineCheck = false),
-    "highknees" to Spec(CountJoint.KNEE, false, contractAngle = 110f, openAngle = 160f, depthWarn = null, bodyLineCheck = false),
-    "mountainclimber" to Spec(CountJoint.KNEE, false, contractAngle = 130f, openAngle = 160f, depthWarn = null, bodyLineCheck = true),
+    "highknees" to Spec(CountJoint.KNEE, false, contractAngle = 115f, openAngle = 155f, depthWarn = null, bodyLineCheck = false, perLeg = true),
+    "mountainclimber" to Spec(CountJoint.KNEE, false, contractAngle = 135f, openAngle = 160f, depthWarn = null, bodyLineCheck = true, perLeg = true),
     // 上肢：肘角（伸直~170，弯~40-90）
     "pushup" to Spec(CountJoint.ELBOW, false, contractAngle = 95f, openAngle = 150f, depthWarn = 90f, bodyLineCheck = true),
     "plank" to Spec(CountJoint.ELBOW, false, contractAngle = 95f, openAngle = 150f, depthWarn = null, bodyLineCheck = true),
@@ -114,6 +116,8 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
     private val spec = SPECS[ex.id]
     private var inRep = false
     private var extremeAngle = Float.MIN_VALUE
+    private var legLInRep = false
+    private var legRInRep = false
     private var lastFeedbackAt = 0L
     private var lastLineWarnAt = 0L
     private var noSupportHintShown = false
@@ -145,10 +149,20 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
             }
         }
 
+        if (s.perLeg) {
+            onPerLeg(lms, s, now)
+            return
+        }
+
         val angle = when (s.joint) {
             CountJoint.KNEE -> angleDeg(lms[side.hip], lms[side.knee], lms[side.ankle])
             CountJoint.ELBOW -> angleDeg(lms[side.shoulder], lms[side.elbow], lms[side.wrist])
             CountJoint.HIP_SHOULDER_KNEE -> angleDeg(lms[side.shoulder], lms[side.hip], lms[side.knee])
+            CountJoint.HIP_DROP -> {
+                // 髋相对膝的下落比例：(膝y-髋y)/(膝y-踝y)，站立≈1、蹲底≈0，与拍摄方向无关
+                val kneeY = lms[side.knee].y
+                ((kneeY - lms[side.hip].y) / (kneeY - lms[side.ankle].y).coerceAtLeast(0.02f)).coerceIn(0f, 1.5f)
+            }
             CountJoint.HIP_SHOULDER_WRIST -> {
                 // 肩关节处 髋-肩-腕 夹角；开合跳双臂对称，取双臂平均更抗遮挡抖动
                 val angles = listOf(SIDE_L, SIDE_R).map { sd ->
@@ -179,6 +193,33 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
                 repCount++
                 feedback = t("✅ 第 $repCount 次", "✅ Rep $repCount")
                 tts?.speak("${repCount}")
+            }
+        }
+    }
+
+    /** 双腿交替动作：左右腿独立状态机，任一腿完成屈伸各计一次 */
+    private fun onPerLeg(lms: List<Pt>, s: Spec, now: Long) {
+        var counted = false
+        listOf(SIDE_L to true, SIDE_R to false).forEach { (sd, isLeft) ->
+            val vis = (lms[sd.hip].vis + lms[sd.knee].vis + lms[sd.ankle].vis) / 3f
+            if (vis < 0.45f) return@forEach
+            val a = angleDeg(lms[sd.hip], lms[sd.knee], lms[sd.ankle])
+            val inRep = if (isLeft) legLInRep else legRInRep
+            when {
+                a < s.contractAngle && !inRep ->
+                    if (isLeft) legLInRep = true else legRInRep = true
+                a > s.openAngle && inRep -> {
+                    if (isLeft) legLInRep = false else legRInRep = false
+                    repCount++
+                    counted = true
+                }
+            }
+        }
+        if (counted) {
+            feedback = t("✓ 第 $repCount 次", "✓ Rep $repCount")
+            if (tts != null && now - lastFeedbackAt > 1500) {
+                lastFeedbackAt = now
+                tts.speak("$repCount")
             }
         }
     }

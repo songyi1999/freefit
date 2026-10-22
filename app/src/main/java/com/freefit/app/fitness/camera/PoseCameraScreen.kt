@@ -147,11 +147,12 @@ private fun CameraContent(ex: Exercise, onExit: () -> Unit) {
             Column(Modifier.weight(1f)) {
                 Text(ex.name, style = MaterialTheme.typography.titleMedium)
                 val frontView = ex.id in setOf("jumpingjack", "highknees")
+                val floorView = ex.id in setOf("dbpress", "crunch", "glutebridge", "superman")
                 Text(
-                    if (frontView) {
-                        t("AI 实时纠错 · 手机放在正前方", "AI Form Check · phone in front of you")
-                    } else {
-                        t("AI 实时纠错 · 手机放在正侧方", "AI Form Check · phone at your side")
+                    when {
+                        floorView -> t("AI 实时纠错 · 手机放低位正侧方（与身体同高）", "AI Form Check · phone low at your side, body height")
+                        frontView -> t("AI 实时纠错 · 手机放在正前方", "AI Form Check · phone in front of you")
+                        else -> t("AI 实时纠错 · 手机放在正侧方", "AI Form Check · phone at your side")
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
