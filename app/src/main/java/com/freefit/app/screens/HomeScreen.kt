@@ -173,7 +173,7 @@ fun HomeScreen(
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("FreeFit", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    Text(t("自由炼", "FreeFit"), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                     Text(
                         t("自律给我自由", "Self-discipline sets me free"),
                         style = MaterialTheme.typography.bodySmall,
@@ -373,7 +373,7 @@ fun HomeScreen(
                     .padding(top = 12.dp),
             ) {
                 Text(
-                    "FreeFit v$currentVersion",
+                    t("自由炼 v$currentVersion", "FreeFit v$currentVersion"),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

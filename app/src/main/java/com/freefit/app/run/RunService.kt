@@ -121,7 +121,7 @@ class RunService : Service() {
         val km = s.distanceM / 1000f
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_run)
-            .setContentTitle(if (s.paused) t("跑步已暂停", "Run paused") else t("FreeFit 正在记录跑步", "FreeFit is tracking your run"))
+            .setContentTitle(if (s.paused) t("跑步已暂停", "Run paused") else t("自由炼正在记录跑步", "FreeFit is tracking your run"))
             .setContentText(String.format(t("已跑 %.2f 公里", "%.2f km so far"), km))
             .setContentIntent(openApp)
             .setOnlyAlertOnce(true)

@@ -62,7 +62,7 @@ object ShareCard {
         val km = r.distanceMeters / 1000f
 
         // 头部
-        text(t("FREEFIT · 户外跑步", "FREEFIT · Outdoor Run"), 46f, GRAY, false, w / 2f, 150f)
+        text(t("自由炼 · 户外跑步", "FREEFIT · Outdoor Run"), 46f, GRAY, false, w / 2f, 150f)
 
         // 大距离数字
         text(String.format(Locale.US, "%.2f", km), 210f, WHITE, true, w / 2f, 400f)
