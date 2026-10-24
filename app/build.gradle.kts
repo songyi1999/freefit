@@ -13,8 +13,8 @@ android {
         applicationId = "com.freefit.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 23
-        versionName = "0.9.4"
+        versionCode = 24
+        versionName = "0.9.5"
     }
 
     signingConfigs {

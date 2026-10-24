@@ -83,7 +83,7 @@ private val SPECS = mapOf(
     "squat" to Spec(CountJoint.HIP_DROP, false, contractAngle = 0.40f, openAngle = 0.70f, depthWarn = 0.50f, bodyLineCheck = false),
     "dbsquat" to Spec(CountJoint.HIP_DROP, false, contractAngle = 0.40f, openAngle = 0.70f, depthWarn = 0.50f, bodyLineCheck = false),
     "lunge" to Spec(CountJoint.KNEE, false, contractAngle = 105f, openAngle = 155f, depthWarn = 100f, bodyLineCheck = false),
-    "highknees" to Spec(CountJoint.KNEE, false, contractAngle = 115f, openAngle = 155f, depthWarn = null, bodyLineCheck = false, perLeg = true),
+    "highknees" to Spec(CountJoint.KNEE, false, contractAngle = 120f, openAngle = 150f, depthWarn = null, bodyLineCheck = false, perLeg = true),
     "mountainclimber" to Spec(CountJoint.KNEE, false, contractAngle = 135f, openAngle = 160f, depthWarn = null, bodyLineCheck = true, perLeg = true),
     // 上肢：肘角（伸直~170，弯~40-90）
     "pushup" to Spec(CountJoint.ELBOW, false, contractAngle = 95f, openAngle = 150f, depthWarn = 90f, bodyLineCheck = true),
@@ -140,6 +140,25 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
             return
         }
 
+        // 双腿交替动作（高抬腿/登山跑）：同样绕开"选侧+含肩"门槛——
+        // 快速交替抬腿时膝踝可见度剧烈波动，含肩的平均门槛会被卡死
+        if (s != null && s.perLeg) {
+            if (s.bodyLineCheck) {
+                val side = pickSide(lms)
+                if (side != null) {
+                    val line = angleDeg(lms[side.shoulder], lms[side.hip], lms[side.ankle])
+                    if (line < 150f && now - lastLineWarnAt > 6000) {
+                        lastLineWarnAt = now
+                        speakFeedback(t("保持头、髋、脚踝一条直线", "Keep head, hips and ankles in a line"), now)
+                    }
+                }
+            }
+            val anyLeg = onPerLeg(lms, s, now)
+            lastPoseGood = anyLeg
+            if (!anyLeg) hint(t("请调整站位/手机角度，让全身入镜", "Adjust position so your full body is in view"), now, 5000)
+            return
+        }
+
         val side = pickSide(lms)
         if (side == null) {
             lastPoseGood = false
@@ -162,11 +181,6 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
                 lastLineWarnAt = now
                 speakFeedback(t("保持头、髋、脚踝一条直线", "Keep head, hips and ankles in a line"), now)
             }
-        }
-
-        if (s.perLeg) {
-            onPerLeg(lms, s, now)
-            return
         }
 
         val angle = when (s.joint) {
@@ -229,12 +243,14 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
         return if (wSum > 0f) acc / wSum else null
     }
 
-    /** 双腿交替动作：左右腿独立状态机，任一腿完成屈伸各计一次 */
-    private fun onPerLeg(lms: List<Pt>, s: Spec, now: Long) {
+    /** 双腿交替动作：左右腿独立状态机，任一腿完成屈伸各计一次；返回是否有腿可见 */
+    private fun onPerLeg(lms: List<Pt>, s: Spec, now: Long): Boolean {
         var counted = false
+        var anyLeg = false
         listOf(SIDE_L to true, SIDE_R to false).forEach { (sd, isLeft) ->
             val vis = (lms[sd.hip].vis + lms[sd.knee].vis + lms[sd.ankle].vis) / 3f
-            if (vis < 0.45f) return@forEach
+            if (vis < 0.40f) return@forEach
+            anyLeg = true
             val a = angleDeg(lms[sd.hip], lms[sd.knee], lms[sd.ankle])
             val inRep = if (isLeft) legLInRep else legRInRep
             when {
@@ -254,6 +270,7 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
                 tts.speak("$repCount")
             }
         }
+        return anyLeg
     }
 
     private fun speakFeedback(msg: String, now: Long) {
