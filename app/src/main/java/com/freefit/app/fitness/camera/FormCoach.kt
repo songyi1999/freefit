@@ -80,8 +80,8 @@ private class Spec(
 
 private val SPECS = mapOf(
     // 下肢：膝角（站立~175，蹲底~80-100）
-    "squat" to Spec(CountJoint.HIP_DROP, false, contractAngle = 0.35f, openAngle = 0.70f, depthWarn = 0.45f, bodyLineCheck = false),
-    "dbsquat" to Spec(CountJoint.HIP_DROP, false, contractAngle = 0.35f, openAngle = 0.70f, depthWarn = 0.45f, bodyLineCheck = false),
+    "squat" to Spec(CountJoint.HIP_DROP, false, contractAngle = 0.40f, openAngle = 0.70f, depthWarn = 0.50f, bodyLineCheck = false),
+    "dbsquat" to Spec(CountJoint.HIP_DROP, false, contractAngle = 0.40f, openAngle = 0.70f, depthWarn = 0.50f, bodyLineCheck = false),
     "lunge" to Spec(CountJoint.KNEE, false, contractAngle = 105f, openAngle = 155f, depthWarn = 100f, bodyLineCheck = false),
     "highknees" to Spec(CountJoint.KNEE, false, contractAngle = 115f, openAngle = 155f, depthWarn = null, bodyLineCheck = false, perLeg = true),
     "mountainclimber" to Spec(CountJoint.KNEE, false, contractAngle = 135f, openAngle = 160f, depthWarn = null, bodyLineCheck = true, perLeg = true),
@@ -124,6 +124,21 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
 
     fun onPose(lms: List<Pt>) {
         val now = System.currentTimeMillis()
+        val s = spec
+
+        // 深蹲族（髋部下落比例）：不选侧、不看肩——手持哑铃时哑铃恰好遮挡单侧髋腿，
+        // 旧的"选一侧+含肩可见度门槛"会被卡死
+        if (s != null && s.joint == CountJoint.HIP_DROP) {
+            val ratio = hipDropRatio(lms)
+            if (ratio == null) {
+                lastPoseGood = false
+                hint(t("请调整站位/手机角度，让全身入镜", "Adjust position so your full body is in view"), now, 5000)
+                return
+            }
+            lastPoseGood = true
+            trackAngle(ratio, s, now)
+            return
+        }
 
         val side = pickSide(lms)
         if (side == null) {
@@ -133,7 +148,7 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
         }
         lastPoseGood = true
 
-        val s = spec ?: run {
+        if (s == null) {
             if (!noSupportHintShown) {
                 noSupportHintShown = true
                 feedback = t("保持类动作：对照骨架保持标准姿态即可", "Hold move: match the figure and keep good form")
@@ -158,11 +173,7 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
             CountJoint.KNEE -> angleDeg(lms[side.hip], lms[side.knee], lms[side.ankle])
             CountJoint.ELBOW -> angleDeg(lms[side.shoulder], lms[side.elbow], lms[side.wrist])
             CountJoint.HIP_SHOULDER_KNEE -> angleDeg(lms[side.shoulder], lms[side.hip], lms[side.knee])
-            CountJoint.HIP_DROP -> {
-                // 髋相对膝的下落比例：(膝y-髋y)/(膝y-踝y)，站立≈1、蹲底≈0，与拍摄方向无关
-                val kneeY = lms[side.knee].y
-                ((kneeY - lms[side.hip].y) / (kneeY - lms[side.ankle].y).coerceAtLeast(0.02f)).coerceIn(0f, 1.5f)
-            }
+            CountJoint.HIP_DROP -> 0f // 已在 onPose 前置分支处理，不会走到这里
             CountJoint.HIP_SHOULDER_WRIST -> {
                 // 肩关节处 髋-肩-腕 夹角；开合跳双臂对称，取双臂平均更抗遮挡抖动
                 val angles = listOf(SIDE_L, SIDE_R).map { sd ->
@@ -172,15 +183,20 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
             }
         }
 
-        val contracted = if (s.reversed) angle > s.openAngle else angle < s.contractAngle
-        val opened = if (s.reversed) angle < s.contractAngle else angle > s.openAngle
+        trackAngle(angle, s, now)
+    }
+
+    /** 通用计数状态机：value 越过 contractAngle 为收缩段，回到 openAngle 之外记一次 */
+    private fun trackAngle(value: Float, s: Spec, now: Long) {
+        val contracted = if (s.reversed) value > s.openAngle else value < s.contractAngle
+        val opened = if (s.reversed) value < s.contractAngle else value > s.openAngle
 
         if (contracted) {
             if (!inRep) {
                 inRep = true
-                extremeAngle = angle
+                extremeAngle = value
             } else {
-                extremeAngle = if (s.reversed) maxOf(extremeAngle, angle) else minOf(extremeAngle, angle)
+                extremeAngle = if (s.reversed) maxOf(extremeAngle, value) else minOf(extremeAngle, value)
             }
         } else if (opened && inRep) {
             inRep = false
@@ -195,6 +211,22 @@ class FormCoach(private val ex: Exercise, private val tts: TtsSpeaker?) {
                 tts?.speak("${repCount}")
             }
         }
+    }
+
+    /** 髋部下落比例：单腿 (膝y-髋y)/(膝y-踝y)，可见腿按可见度加权平均；站立≈1、蹲底≈0，与拍摄方向无关 */
+    private fun hipDropRatio(lms: List<Pt>): Float? {
+        var acc = 0f
+        var wSum = 0f
+        listOf(SIDE_L, SIDE_R).forEach { sd ->
+            val vis = (lms[sd.hip].vis + lms[sd.knee].vis + lms[sd.ankle].vis) / 3f
+            if (vis >= 0.35f) {
+                val r = ((lms[sd.knee].y - lms[sd.hip].y) /
+                    (lms[sd.knee].y - lms[sd.ankle].y).coerceAtLeast(0.02f)).coerceIn(0f, 1.5f)
+                acc += r * vis
+                wSum += vis
+            }
+        }
+        return if (wSum > 0f) acc / wSum else null
     }
 
     /** 双腿交替动作：左右腿独立状态机，任一腿完成屈伸各计一次 */
